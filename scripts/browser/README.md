@@ -1,5 +1,14 @@
 # Browser snippets
 
+> **A correction worth reading before you trust these.** The first two snippets
+> originally claimed their output was safe to share, and it was not. Two bugs:
+> `new URL(href).pathname` on a `mailto:` link returns the whole email address,
+> and "looks like a field label" was guessed from Title Case — which matches
+> employer and university names too. Both are fixed, and `recon-skeleton.js`
+> exists because the only reliable fix is not to print page text at all. If you
+> ran an earlier version, its output contained one classmate's name, email,
+> university and employer.
+
 HBS class cards live behind SSO, so the only way to read them is from a browser
 that is already logged in. These two snippets run in your own DevTools console —
 nothing is automated, no credentials are handled by any tool, and every request
@@ -25,7 +34,18 @@ The output is therefore safe to paste into a chat or a GitHub issue.
 Chrome may require you to type `allow pasting` in the console once before it
 accepts pasted code. That is a Chrome safety prompt, and it is a good one.
 
-## 2. `harvest.js` — collect the data
+## 2. `recon-detail.js` — the detail page
+
+Fetches one class card using your session and reports its table structure, so the
+parser can be written against real markup. Same redaction rules.
+
+## 3. `recon-skeleton.js` — structure with no text at all
+
+The safe-by-construction version: it prints tag names, ids, classes, URL paths
+and character counts, and **never prints page text**. There is no allowlist to
+get wrong and no heuristic to misfire. Prefer this one when sharing output.
+
+## 4. `harvest.js` — collect the data
 
 Written *after* recon, against the real markup. It walks the section's search
 results, fetches each class card in turn with a polite delay, extracts the fields

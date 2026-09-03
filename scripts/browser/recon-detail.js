@@ -61,13 +61,25 @@
   log(`Photo URLs used by more than one person: ${shared.length}` + (shared.length ? ` (counts: ${shared.join(', ')}) — likely a placeholder` : ''))
 
   // ---- Structure of one results row --------------------------------------
+  // NB: mailto:/tel: must be special-cased. For those schemes `pathname` is the
+  // address itself, so an earlier version printed a classmate's name and email
+  // in a report that claimed to be redacted.
+  const safeUrl = (raw) => {
+    if (!raw) return '?'
+    if (/^mailto:/i.test(raw)) return 'mailto:<redacted>'
+    if (/^tel:/i.test(raw)) return 'tel:<redacted>'
+    try {
+      const url = new URL(raw, location.href)
+      const keys = [...url.searchParams.keys()]
+      return url.pathname + (keys.length ? `?{${keys.join(',')}}` : '')
+    } catch { return '?' }
+  }
+
   if (rows[0]) {
     log('')
     log('--- STRUCTURE OF ONE RESULTS ROW ---')
     ;[...rows[0].cells].forEach((cell, i) => {
-      const links = [...cell.querySelectorAll('a')].map((a) => {
-        try { return new URL(a.href).pathname + (new URL(a.href).search ? '?{' + [...new URL(a.href).searchParams.keys()].join(',') + '}' : '') } catch { return '?' }
-      })
+      const links = [...cell.querySelectorAll('a')].map((a) => safeUrl(a.getAttribute('href')))
       log(`  cell[${i}] tag=${cell.tagName} class="${cell.className}"`)
       log(`     text: ${redact(cell.textContent)}`)
       if (links.length) log(`     links: ${[...new Set(links)].join(' , ')}`)
@@ -109,26 +121,28 @@
     tables.slice(0, 8).forEach((table, i) => {
       log(`  table[${i}] ${path(table)} rows=${table.rows.length}`)
       ;[...table.rows].slice(0, 20).forEach((row, r) => {
-        const cells = [...row.cells].map((cell) => {
-          const text = cell.textContent.replace(/\s+/g, ' ').trim()
-          const isLabel =
-            cell.tagName === 'TH' ||
-            (text.length < 40 && /[:：]\s*$/.test(text)) ||
-            /^[A-Z][A-Za-z /&'-]{2,32}$/.test(text)
-          return isLabel ? `"${text}"` : redact(text)
-        })
+        // Only <th> is trusted as a field name; the Title-Case heuristic this
+        // replaces echoed employer and university names verbatim.
+        const cells = [...row.cells].map((cell) =>
+          cell.tagName === 'TH' ? `"${cell.textContent.replace(/\s+/g, ' ').trim()}"` : redact(cell.textContent),
+        )
         if (cells.some((c) => c !== '(empty)')) log(`    row[${r}]: ${cells.join('  |  ')}`)
       })
     })
 
     log('')
     log('--- DETAIL PAGE HEADINGS & LABELS ---')
+    // On a class card, <h2> and <strong> hold the person's name, university and
+    // employer — they are values, not field names. Only panel headers are
+    // printed, and only when they match a known section name exactly.
+    const PANEL_NAMES = new Set(['education', 'work experience', 'additional information', 'mba classcard'])
     const seen = new Set()
-    for (const el of doc.querySelectorAll('h1,h2,h3,h4,h5,th,dt,label,strong,b,legend,.card-header,.panel-heading')) {
+    for (const el of doc.querySelectorAll('h1,h2,h3,h4,h5,th,dt,legend,.card-header,.panel-heading')) {
       const text = el.textContent.replace(/\s+/g, ' ').trim()
       if (!text || text.length > 45 || seen.has(text)) continue
+      const isField = el.tagName === 'TH' || el.tagName === 'DT' || PANEL_NAMES.has(text.toLowerCase())
       seen.add(text)
-      log(`   <${el.tagName.toLowerCase()}> "${text}"  @ ${path(el)}`)
+      log(`   <${el.tagName.toLowerCase()}> ${isField ? `"${text}"` : redact(text)}  @ ${path(el)}`)
       if (seen.size > 60) break
     }
 
@@ -136,7 +150,9 @@
     log('--- DETAIL PAGE SECTION CONTAINERS ---')
     for (const el of [...doc.querySelectorAll('div.card, div.panel, section, fieldset')].slice(0, 25)) {
       const heading = el.querySelector('h1,h2,h3,h4,h5,.card-header,.panel-heading')
-      log(`   ${el.tagName.toLowerCase()}.${(typeof el.className === 'string' ? el.className : '').trim().split(/\s+/).slice(0,3).join('.')}  heading="${heading ? heading.textContent.replace(/\s+/g,' ').trim().slice(0,40) : '(none)'}"  textLen=${el.textContent.trim().length}`)
+      const headingText = heading ? heading.textContent.replace(/\s+/g, ' ').trim() : ''
+      const shown = PANEL_NAMES.has(headingText.toLowerCase()) ? `"${headingText}"` : redact(headingText)
+      log(`   ${el.tagName.toLowerCase()}.${(typeof el.className === 'string' ? el.className : '').trim().split(/\s+/).slice(0,3).join('.')}  heading=${shown}  textLen=${el.textContent.trim().length}`)
     }
   }
 

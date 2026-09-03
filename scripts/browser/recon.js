@@ -35,9 +35,18 @@
     return `<text:${value.length}>`
   }
 
-  /** Keep the shape of a URL, drop anything identifying. */
+  /**
+   * Keep the shape of a URL, drop anything identifying.
+   *
+   * mailto: and tel: are special-cased because for those schemes `pathname` IS
+   * the address — an earlier version of this leaked a classmate's name and email
+   * straight into its "redacted" report.
+   */
   const urlShape = (url) => {
     if (!url) return '(none)'
+    if (/^mailto:/i.test(url)) return 'mailto:<redacted>'
+    if (/^tel:/i.test(url)) return 'tel:<redacted>'
+    if (/^javascript:/i.test(url)) return 'javascript:'
     try {
       const parsed = new URL(url, location.href)
       const params = [...parsed.searchParams.keys()].join(',')
@@ -120,11 +129,11 @@
     rows.slice(0, 14).forEach((row, r) => {
       const cells = [...row.cells].map((cell) => {
         const text = cell.textContent.trim()
-        // A short cell ending in a colon, or a <th>, is almost certainly a label —
-        // labels are field names, not personal data, so keep them verbatim.
-        const isLabel =
-          cell.tagName === 'TH' || (text.length < 40 && /[:：]\s*$/.test(text)) || /^[A-Z][A-Za-z /&'-]{2,30}$/.test(text)
-        return isLabel ? `"${text}"` : redact(text)
+        // Only a <th> is trusted as a field name. The earlier "looks like a
+        // label" heuristic — Title Case, or ending in a colon — matched values
+        // too: "Lockheed Martin" and "Rensselaer Polytechnic Institute" are
+        // Title Case, and printing them defeated the point of the whole script.
+        return cell.tagName === 'TH' ? `"${text}"` : redact(text)
       })
       if (cells.some((c) => c !== '(empty)')) log(`    row[${r}]: ${cells.join('  |  ')}`)
     })
@@ -147,15 +156,25 @@
 
   // ---- Any element whose text looks like a field label ------------------
   log('')
-  log('--- LABEL-LIKE STRINGS ON PAGE (field names, not values) ---')
-  const labelWords =
-    /home region|current address|birth|interest|activit|employ|work|company|title|position|section|partner|spouse|email|e-mail|phone|mobile|hometown|education|degree|school|prior|experience|industry|club|language/i
+  log('--- FIELD-NAME STRINGS ON PAGE ---')
+  // Strictly an allowlist of known field names. A string is printed only if it
+  // matches one of these *in full* (ignoring a trailing colon) — so a value can
+  // never be echoed just because it happens to contain the word "Company".
+  const FIELD_NAMES = new Set(
+    [
+      'name', 'section', 'phone', 'email', 'e-mail', 'phone & email', 'mobile', 'home phone',
+      'partner', 'spouse', 'home region', 'hometown', 'current address', 'birthday', 'birth date',
+      'interests', 'activities', 'education', 'university', 'degree', 'degree / major(s)',
+      'grad date', 'work experience', 'company', 'company & title', 'title', 'location', 'dates',
+      'additional information', 'languages', 'industry', 'clubs',
+    ].map((s) => s.toLowerCase()),
+  )
   const seen = new Set()
   for (const el of document.querySelectorAll('td, th, dt, label, strong, b, span, div')) {
-    const text = el.textContent.trim()
-    if (text.length > 45 || text.length < 3) continue
     if (el.children.length > 0) continue
-    if (!labelWords.test(text)) continue
+    const text = el.textContent.replace(/\s+/g, ' ').trim()
+    const key = text.replace(/[:：]\s*$/, '').toLowerCase()
+    if (!FIELD_NAMES.has(key)) continue
     if (seen.has(text)) continue
     seen.add(text)
     log(`   "${text}"   @ ${path(el)}`)
