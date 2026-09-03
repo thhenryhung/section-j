@@ -54,11 +54,11 @@ export function PersonRow({ person }: { person: Person }) {
       <td className="hidden max-w-40 truncate px-2 py-2.5 text-sm text-ink-600 dark:text-ink-300 sm:table-cell">
         {industries || <span className="text-ink-300 dark:text-ink-700">—</span>}
       </td>
-      <td className="hidden max-w-40 truncate px-2 py-2.5 text-sm text-ink-600 dark:text-ink-300 md:table-cell">
-        {home || <span className="text-ink-300 dark:text-ink-700">—</span>}
-      </td>
-      <td className="hidden max-w-56 truncate px-2 py-2.5 text-sm text-ink-600 dark:text-ink-300 lg:table-cell">
+      <td className="hidden max-w-56 truncate px-2 py-2.5 text-sm text-ink-600 dark:text-ink-300 md:table-cell">
         {interests || <span className="text-ink-300 dark:text-ink-700">—</span>}
+      </td>
+      <td className="hidden max-w-40 truncate px-2 py-2.5 text-sm text-ink-600 dark:text-ink-300 lg:table-cell">
+        {home || <span className="text-ink-300 dark:text-ink-700">—</span>}
       </td>
     </tr>
   )

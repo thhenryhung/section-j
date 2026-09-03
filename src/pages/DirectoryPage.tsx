@@ -191,10 +191,10 @@ export function DirectoryPage() {
                 <tr className="border-b border-ink-200 text-xs uppercase tracking-wide text-ink-400 dark:border-ink-800">
                   <th className="px-2 py-2 font-semibold">Name</th>
                   <th className="hidden px-2 py-2 font-semibold sm:table-cell">Industry</th>
-                  <th className="hidden px-2 py-2 font-semibold md:table-cell">Home region</th>
-                  <th className="hidden px-2 py-2 font-semibold lg:table-cell">
+                  <th className="hidden px-2 py-2 font-semibold md:table-cell">
                     Professional interests
                   </th>
+                  <th className="hidden px-2 py-2 font-semibold lg:table-cell">Home region</th>
                 </tr>
               </thead>
               <tbody>
