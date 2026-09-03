@@ -35,7 +35,6 @@ const outPath = path.join(privateDir, 'photos.json')
  */
 const MAX_SIZE = 300
 const QUALITY = 82
-const BLUR_SIZE = 16
 
 if (!existsSync(photosDir)) {
   console.log(`No photos directory at ${photosDir} — nothing to do.`)
@@ -57,7 +56,6 @@ const files = readdirSync(photosDir).filter((file) =>
 )
 
 const photos: Record<string, string> = {}
-const blurs: Record<string, string> = {}
 let skipped = 0
 let totalBytes = 0
 
@@ -82,18 +80,11 @@ for (const file of files) {
     .webp({ quality: QUALITY })
     .toBuffer()
 
-  const blur = await sharp(input)
-    .resize(BLUR_SIZE, BLUR_SIZE, { fit: 'cover' })
-    .webp({ quality: 40 })
-    .toBuffer()
-
   photos[id] = `data:image/webp;base64,${square.toString('base64')}`
-  blurs[id] = `data:image/webp;base64,${blur.toString('base64')}`
   totalBytes += square.length
 }
 
 writeFileSync(outPath, JSON.stringify(photos) + '\n')
-writeFileSync(path.join(privateDir, 'photo-blurs.json'), JSON.stringify(blurs) + '\n')
 
 const count = Object.keys(photos).length
 console.log(`✓ ${outPath}`)

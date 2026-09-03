@@ -69,6 +69,15 @@ npm run data:photos
 npm run check:leaks
 ```
 
+## Possible improvement
+
+Portraits load as full images with no placeholder. A blur-up placeholder — a 16px
+thumbnail carried inside the encrypted roster — would smooth the first paint after
+unlock. An earlier version generated these into `photo-blurs.json`, but nothing
+ever read them, so the dead output was removed rather than left to look wired up.
+Wiring it properly means adding a field to `Person`, populating it in
+`parse-classcards.ts`, and rendering it in `PersonPhoto`.
+
 ## A note on scope
 
 These snippets read your own section's cards — the same information the class card

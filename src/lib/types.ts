@@ -67,11 +67,6 @@ export type Person = {
 
   /** Key into the encrypted photo bundle. Absent when the person opted out. */
   photoId?: string
-  /**
-   * Tiny base64 webp blur-up placeholder. It lives inside the encrypted roster
-   * rather than as a plain asset — a 16px thumbnail of a face is still a face.
-   */
-  photoBlur?: string
 
   homeRegion?: Region
   currentCity?: string

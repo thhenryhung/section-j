@@ -52,23 +52,14 @@ every contributor sees, and it is enough to build and test any feature in the ap
 
 ## How the data gets in
 
-```
-HBS class cards ──scrape──> section-j-data/raw/*.html
-ClasscardsDownload.xls ───> section-j-data/classcards-export.csv
-Google Form (survey) ─────> section-j-data/overrides.json
-                                      │
-                    npm run data:parse │  merge + apply opt-outs
-                                      ▼
-                            section-j-data/roster.json
-                                      │
-                  npm run data:encrypt │  AES-256-GCM
-                                      ▼
-                          public/data/roster.enc  →  deployed
-```
+Class cards are harvested from a logged-in browser into the private repo, merged
+with the HBS contact export and the section's own socials sheet, then encrypted at
+build time. [`SETUP.md`](SETUP.md) is the runbook;
+[`docs/class-cards.md`](docs/class-cards.md) documents the markup and its traps.
 
-Post-MBA goals, LinkedIn, pronouns, dietary requirements and fun facts are **not**
-on HBS class cards. They come from a short opt-in survey, and every view degrades
-gracefully when someone has not filled it in.
+Post-MBA goals, pronouns, dietary requirements and fun facts are **not** on class
+cards — they come from a short opt-in survey, and every view degrades gracefully
+when someone has not filled it in.
 
 ## Commands
 
@@ -78,7 +69,7 @@ gracefully when someone has not filled it in.
 | `npm run build` | Type-check and build to `dist/`. |
 | `npm run data:sample` | Regenerate the synthetic roster. |
 | `npm run data:parse` | Real class-card HTML → `roster.json`. Needs the private repo. |
-| `npm run data:photos` | Normalise photos to 400px webp. |
+| `npm run data:photos` | Normalise photos to webp (300px ceiling, no upscaling). |
 | `npm run data:encrypt` | Encrypt roster, photos and meetup history into `public/data/`. |
 | `npm run pair -- --kind dinner --date 2026-09-17` | Generate a meetup round. Add `--dry-run` to preview. |
 | `npm run check:leaks` | Scan for personal data before you push. |

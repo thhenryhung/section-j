@@ -33,6 +33,10 @@ public/data/manifest.json
 .env.*
 !.env.example
 
+# Local machine and employer specifics. Claude reads this alongside CLAUDE.md,
+# but it must never ship to the section in a public repo.
+CLAUDE.local.md
+
 # Node / build
 node_modules/
 dist/

@@ -34,10 +34,34 @@ type Finding = { file: string; line: number; rule: string; excerpt: string }
 
 const PATTERN_RULES: Array<{ name: string; re: RegExp }> = [
   { name: 'HBS email address', re: /[\w.+-]+@(?:\w+\.)*hbs\.edu/gi },
-  // (858) 2323572, 858-232-3572, +1 858 232 3572 — but not years, ports, or hashes.
-  { name: 'phone number', re: /(?:\+?\d{1,2}[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g },
-  { name: 'raw class-card export', re: /ClasscardsDownload|classcards-export/g },
+  /**
+   * A phone number as a human types one, which always carries a separator or
+   * parentheses: "(858) 2323572", "858-232-3572", "+1 617 555 1000".
+   *
+   * An earlier version allowed the separators to be absent, which made it match
+   * any run of ten digits — so it fired on `4294967296` in the RNG and on
+   * unrelated constants. It would have failed CI on its first run, and a check
+   * that cries wolf gets allowlisted into uselessness.
+   */
+  {
+    name: 'phone number',
+    re: new RegExp(
+      [
+        /\(\d{3}\)\s*\d{3}[\s.-]?\d{4}/.source, // (858) 232-3572
+        /\+?\d{0,2}[\s.-]?\d{3}[\s.-]\d{3}[\s.-]\d{4}/.source, // 858-232-3572
+        /\+\d{1,3}\s*\d{7,12}/.source, // +1 6175551234
+      ].join('|'),
+      'g',
+    ),
+  },
 ]
+
+/**
+ * The raw export must not be committed — but this is a check on the FILE PATH,
+ * not on content. Matching the filename inside a file caught every document that
+ * merely *documents* the pipeline, which is the opposite of useful.
+ */
+const FORBIDDEN_PATHS = /ClasscardsDownload|classcards-export|socials\.csv|classcards\.json/i
 
 /**
  * Files that legitimately contain the strings above and must not trip the check.
@@ -52,9 +76,9 @@ const ALLOWLIST = [
   'scripts/make-sample.ts',
   '.gitignore',
   'package-lock.json',
-  'README.md',
-  'CONTRIBUTING.md',
-  'PRIVACY.md',
+  // CLAUDE.local.md is gitignored, so it is normally never scanned — this only
+  // matters on the fallback path used when the working tree is not a git repo.
+  'CLAUDE.local.md',
 ]
 
 /** Checked by the exact-match layer but exempt from the loose pattern rules. */
@@ -113,6 +137,18 @@ function scan(): Finding[] {
   const files = [...new Set([...trackedFiles(), ...distFiles()])]
 
   for (const file of files) {
+    // A forbidden path is a leak regardless of what is inside it, and it is not
+    // waivable by the allowlist.
+    if (FORBIDDEN_PATHS.test(path.basename(file))) {
+      findings.push({
+        file,
+        line: 0,
+        rule: 'forbidden file',
+        excerpt: 'raw personal-data file — belongs in the private repo only',
+      })
+      continue
+    }
+
     if (ALLOWLIST.includes(file)) continue
     if (BINARY_EXTENSIONS.has(path.extname(file).toLowerCase())) continue
 
