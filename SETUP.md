@@ -153,8 +153,9 @@ npm run pair -- --kind onetoone --date 2026-10-08
 ```
 
 Commit the updated `meetup-history.json` to the private repo, then re-run the
-Deploy workflow. The same generator is available in the app under
-Social → *Show round generator* if you would rather click than type.
+Deploy workflow. This CLI is the only generator now — the in-app one on the
+Social tab was removed so regular section members can't trigger a new round
+themselves.
 
 ## Handover
 
