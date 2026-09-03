@@ -275,7 +275,9 @@ for (let i = 0; i < COUNT; i++) {
       : [],
     birthday: { month: 1 + Math.floor(random() * 12), day: 1 + Math.floor(random() * 28) },
     startupExperience: chance(0.28),
-    linkedin: chance(0.6) ? `https://www.linkedin.com/in/${id}-sample` : undefined,
+    // 44% and 40% match the real section: the socials sheet covers 40 of 90.
+    linkedin: chance(0.44) ? `https://www.linkedin.com/in/${id}-sample` : undefined,
+    instagram: chance(0.4) ? `${id}.sample` : undefined,
     pronouns: chance(0.35) ? pick(PRONOUNS) : undefined,
     funFact: chance(0.5) ? pick(FUN_FACTS) : undefined,
     dietary: chance(0.3) ? sample(DIETARY, 1, 2) : undefined,

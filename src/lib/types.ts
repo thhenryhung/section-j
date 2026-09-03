@@ -96,7 +96,10 @@ export type Person = {
   birthday?: Birthday
   startupExperience?: boolean
 
+  /** Absolute, normalised URL — tracking parameters stripped. */
   linkedin?: string
+  /** Bare handle, no leading "@" and no URL. */
+  instagram?: string
   pronouns?: string
   funFact?: string
   /** Feeds the dinner allocator so hosts know what to cook. */

@@ -130,6 +130,16 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
                 LinkedIn
               </a>
             )}
+            {person.instagram && (
+              <a
+                href={`https://instagram.com/${person.instagram}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg border border-ink-300 px-3 py-1.5 text-sm dark:border-ink-700"
+              >
+                @{person.instagram}
+              </a>
+            )}
           </div>
 
           <p className="text-sm text-ink-500">
