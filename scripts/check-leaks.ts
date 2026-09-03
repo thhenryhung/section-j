@@ -42,6 +42,13 @@ const PATTERN_RULES: Array<{ name: string; re: RegExp }> = [
    * any run of ten digits — so it fired on `4294967296` in the RNG and on
    * unrelated constants. It would have failed CI on its first run, and a check
    * that cries wolf gets allowlisted into uselessness.
+   *
+   * The `+`-prefixed branch below had the same bug hiding in it: `\s*` makes the
+   * separator after the country code optional, so it matches a bare `+` sitting
+   * next to any 7-12 digit run — exactly what a minified production bundle is
+   * full of, once every dependency's constants get concatenated together. Fixed
+   * the same way as the digit-run case: require the separator a human would
+   * actually type.
    */
   {
     name: 'phone number',
@@ -49,7 +56,7 @@ const PATTERN_RULES: Array<{ name: string; re: RegExp }> = [
       [
         /\(\d{3}\)\s*\d{3}[\s.-]?\d{4}/.source, // (858) 232-3572
         /\+?\d{0,2}[\s.-]?\d{3}[\s.-]\d{3}[\s.-]\d{4}/.source, // 858-232-3572
-        /\+\d{1,3}\s*\d{7,12}/.source, // +1 6175551234
+        /\+\d{1,3}[\s.-]\d{7,12}/.source, // +1 6175551234
       ].join('|'),
       'g',
     ),
