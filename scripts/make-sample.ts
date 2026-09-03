@@ -3,7 +3,7 @@
  *
  * Every contributor develops against this file. It has the same shape and roughly
  * the same distribution as the real section, so the UI is exercised properly —
- * long names, missing fields, people with no photo, people with no stated goals —
+ * long names, missing fields, people with no photo, people with no stated interests —
  * without a single real person appearing in a public repository.
  *
  * Emails use the reserved `.invalid` TLD (RFC 2606), which can never resolve, and
@@ -16,7 +16,7 @@ import { writeFileSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mulberry32 } from '../src/lib/pairing'
-import type { Language, Person, Roster } from '../src/lib/types'
+import type { Person, Roster } from '../src/lib/types'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dataDir = path.join(repoRoot, 'data')
@@ -109,36 +109,6 @@ const TITLES = [
   'Operations Lead', 'Strategy Manager', 'Research Scientist', 'Programme Officer',
 ]
 
-const POST_MBA_INDUSTRIES = [
-  'Private Equity', 'Venture Capital', 'Technology', 'Consulting', 'Healthcare',
-  'Climate & Energy', 'Consumer & Retail', 'Entrepreneurship', 'Social Impact',
-  'Media & Entertainment', 'Financial Services', 'Real Estate',
-]
-
-const POST_MBA_FUNCTIONS = [
-  'General Management', 'Product', 'Investing', 'Strategy', 'Operations',
-  'Marketing', 'Business Development', 'Founder',
-]
-
-const GEOGRAPHIES = [
-  'Boston', 'New York', 'San Francisco', 'London', 'Singapore', 'Dubai',
-  'Sao Paulo', 'Lagos', 'Mumbai', 'Tokyo', 'Remote',
-]
-
-const INTERESTS = [
-  'Trail running', 'Chess', 'Film photography', 'Jazz piano', 'Rock climbing', 'Baking',
-  'Sailing', 'Stand-up comedy', 'Cycling', 'Scuba diving', 'Board games', 'Pottery',
-  'Marathon running', 'Skiing', 'Surfing', 'Wine', 'Poetry', 'Salsa dancing', 'Golf',
-  'Tennis', 'Birdwatching', 'Woodworking', 'Podcasting', 'Football', 'Yoga', 'Hiking',
-  'Cooking', 'Language learning', 'Astronomy', 'Vinyl collecting',
-]
-
-const ACTIVITIES = [
-  'Rugby Club', 'Entrepreneurship Club', 'Tech Club', 'Investment Club', 'Africa Business Club',
-  'Latin America Club', 'Asia Business Club', 'Women in Business', 'Social Enterprise Club',
-  'Wine & Cuisine Society', 'Outdoors Club', 'Volleyball', 'Debate Society', 'Show Committee',
-  'Healthcare Club', 'Energy & Environment Club', 'Media & Entertainment Club',
-]
 
 const DIETARY = ['Vegetarian', 'Vegan', 'Halal', 'Kosher', 'Gluten-free', 'No shellfish', 'Nut allergy']
 
@@ -164,13 +134,6 @@ const DEGREES = [
   'BEng, Electrical Engineering', 'BA, Political Science', 'BCom, Finance',
   'BSc, Mathematics', 'BA, History', 'BS, Industrial Engineering', 'BA, International Relations',
 ]
-
-const LANGUAGE_NAMES = [
-  'English', 'Spanish', 'Mandarin', 'Portuguese', 'French', 'Arabic', 'Hindi', 'German',
-  'Japanese', 'Korean', 'Italian', 'Swahili', 'Polish', 'Swedish', 'Turkish',
-]
-
-const LANGUAGE_LEVELS = ['native', 'fluent', 'conversational', 'basic']
 
 const PRONOUNS = ['she/her', 'he/him', 'they/them']
 
@@ -219,12 +182,8 @@ for (let i = 0; i < COUNT; i++) {
   // the sparsity it will actually meet: 39% have no professional interests,
   // 61% no interests, 78% no HBS activities.
   const hasPhoto = chance(0.94)
-  const hasGoals = chance(0.72)
   const hasSecondRole = chance(0.45)
   const hasProfessionalInterests = chance(0.68)
-  const hasInterests = chance(0.39)
-  const hasActivities = chance(0.22)
-  const hasLanguages = chance(0.77)
 
   const person: Person = {
     id,
@@ -257,27 +216,9 @@ for (let i = 0; i < COUNT; i++) {
     education: [
       { school: pick(SCHOOLS), degree: pick(DEGREES), gradDate: `${2018 + Math.floor(random() * 5)}` },
     ],
-    postMBA: hasGoals
-      ? {
-          industries: sample(POST_MBA_INDUSTRIES, 1, 3),
-          functions: sample(POST_MBA_FUNCTIONS, 1, 2),
-          geographies: sample(GEOGRAPHIES, 1, 2),
-        }
-      : undefined,
     professionalInterests: hasProfessionalInterests ? sample(PROFESSIONAL_INTERESTS, 1, 5) : [],
-    interests: hasInterests ? sample(INTERESTS, 2, 6) : [],
-    activities: hasActivities ? sample(ACTIVITIES, 1, 4) : [],
-    languages: hasLanguages
-      ? (sample(LANGUAGE_NAMES, 1, 3).map((name, i) => ({
-          name,
-          level: i === 0 ? 'native' : pick(LANGUAGE_LEVELS),
-        })) as Language[])
-      : [],
     birthday: { month: 1 + Math.floor(random() * 12), day: 1 + Math.floor(random() * 28) },
     startupExperience: chance(0.28),
-    // 44% and 40% match the real section: the socials sheet covers 40 of 90.
-    linkedin: chance(0.44) ? `https://www.linkedin.com/in/${id}-sample` : undefined,
-    instagram: chance(0.4) ? `${id}.sample` : undefined,
     pronouns: chance(0.35) ? pick(PRONOUNS) : undefined,
     funFact: chance(0.5) ? pick(FUN_FACTS) : undefined,
     dietary: chance(0.3) ? sample(DIETARY, 1, 2) : undefined,

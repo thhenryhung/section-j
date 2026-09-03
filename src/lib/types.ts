@@ -34,18 +34,6 @@ export type Education = {
   gradDate?: string
 }
 
-/** A language and how well it is spoken, e.g. { name: "Spanish", level: "fluent" }. */
-export type Language = {
-  name: string
-  level?: string
-}
-
-export type PostMBAGoals = {
-  industries: string[]
-  functions: string[]
-  geographies: string[]
-}
-
 /** Month/day only. We deliberately never store or ship a birth year. */
 export type Birthday = {
   month: number // 1-12
@@ -73,28 +61,21 @@ export type Person = {
 
   /** Most recent first. */
   preMBA: PriorRole[]
-  postMBA?: PostMBAGoals
   education: Education[]
 
   /**
-   * Class cards carry both "Interests" and "Professional Interests", and they are
-   * populated very differently — in Section J, 35 of 90 filled in interests but
-   * 61 filled in professional interests. Both are kept separate rather than
-   * merged, because the directory's facets need to lead with whichever field
-   * actually has data.
+   * The only interest-style field in the MVP, and the one worth having: 60 of 89
+   * people filled it in, against 34 for "Interests" and 19 for "HBS Activities".
+   *
+   * Those two, plus languages, post-MBA goals and social links, are deliberately
+   * out of scope for now — see docs/class-cards.md, which documents how they are
+   * laid out on the card so they can be added back without rediscovering it.
    */
-  interests: string[]
   professionalInterests: string[]
-  activities: string[]
-  languages: Language[]
 
   birthday?: Birthday
   startupExperience?: boolean
 
-  /** Absolute, normalised URL — tracking parameters stripped. */
-  linkedin?: string
-  /** Bare handle, no leading "@" and no URL. */
-  instagram?: string
   pronouns?: string
   funFact?: string
   /** Feeds the dinner allocator so hosts know what to cook. */

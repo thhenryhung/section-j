@@ -48,17 +48,9 @@ export function DirectoryPage() {
           { name: 'preMBA.title', weight: 1 },
           { name: 'preMBA.industry', weight: 1 },
           { name: 'preMBA.description', weight: 0.5 },
-          { name: 'postMBA.industries', weight: 1.5 },
-          { name: 'postMBA.functions', weight: 1 },
-          { name: 'postMBA.geographies', weight: 1 },
           { name: 'professionalInterests', weight: 1.5 },
           { name: 'education.school', weight: 1.25 },
           { name: 'education.degree', weight: 0.75 },
-          { name: 'languages.name', weight: 1 },
-          // Sparse, but when someone has filled these in they are exactly what
-          // a person searching for a climbing partner is typing.
-          { name: 'interests', weight: 1.5 },
-          { name: 'activities', weight: 1.5 },
           { name: 'homeRegion.city', weight: 1 },
           { name: 'homeRegion.country', weight: 1 },
           { name: 'currentCity', weight: 0.5 },

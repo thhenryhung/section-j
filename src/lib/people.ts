@@ -1,20 +1,20 @@
 /**
  * Derived views over a Person — labels, facets, and similarity.
  *
- * Which fields are facets is driven by measured coverage in the real section,
- * not by what class cards happen to offer. From 90 harvested cards:
+ * Which fields exist at all is driven by measured coverage in the real section,
+ * not by what class cards happen to offer. From the 89 parsed cards:
  *
- *   home region  90    education      90    pre-MBA role  90
- *   languages    69    prof. interests 61
- *   interests    35    HBS activities 20
+ *   home region 89   education 89   pre-MBA role 89   professional interests 60
+ *   languages 68     interests 34   HBS activities 19
  *
- * Interests and activities are kept on the person and shown on their profile,
- * but they are deliberately NOT facets: a filter that can only ever match 20
- * people is worse than no filter, because it looks authoritative and quietly
- * hides the other 70.
+ * The last three are out of scope for the MVP. A filter that can only ever match
+ * 19 people is worse than no filter — it looks authoritative while quietly hiding
+ * the other 70 — and carrying half-populated fields through the whole stack costs
+ * more than it returns. docs/class-cards.md records how they are laid out so they
+ * can come back cheaply.
  */
 
-import type { Language, Person, Region } from './types'
+import type { Person, Region } from './types'
 
 export function regionLabel(region?: Region): string | undefined {
   if (!region) return undefined
@@ -31,10 +31,6 @@ export function currentRoleLabel(person: Person): string | undefined {
 
 export function schoolLabel(person: Person): string | undefined {
   return person.education[0]?.school
-}
-
-export function languageLabel(language: Language): string {
-  return language.level ? `${language.name} (${language.level})` : language.name
 }
 
 export function initials(person: Person): string {
@@ -57,47 +53,31 @@ export function whatsappHref(phone?: string): string | undefined {
 // Facets
 // ---------------------------------------------------------------------------
 
-export type FacetKey =
-  | 'professionalInterest'
-  | 'postMBAIndustry'
-  | 'preMBAIndustry'
-  | 'region'
-  | 'language'
-  | 'school'
+export type FacetKey = 'professionalInterest' | 'preMBAIndustry' | 'region' | 'school'
 
 export const FACET_LABELS: Record<FacetKey, string> = {
   professionalInterest: 'Professional interest',
-  postMBAIndustry: 'Post-MBA goal',
   preMBAIndustry: 'Pre-MBA industry',
   region: 'Home region',
-  language: 'Language',
   school: 'University',
 }
 
 /** Ordered by how much data actually backs each one. */
 export const FACET_ORDER: FacetKey[] = [
   'professionalInterest',
-  'postMBAIndustry',
   'preMBAIndustry',
   'region',
-  'language',
   'school',
 ]
 
 export function facetsOf(person: Person): Record<FacetKey, string[]> {
   return {
     professionalInterest: person.professionalInterests,
-    postMBAIndustry: person.postMBA?.industries ?? [],
     preMBAIndustry: person.preMBA
       .map((role) => role.industry)
       .filter((v): v is string => Boolean(v)),
     region: [person.homeRegion?.country].filter((v): v is string => Boolean(v)),
-    // Level is dropped for faceting: "Spanish" should match whether someone
-    // marked themselves fluent or conversational.
-    language: person.languages.map((l) => l.name),
-    school: person.education
-      .map((e) => e.school)
-      .filter((v): v is string => Boolean(v)),
+    school: person.education.map((e) => e.school).filter((v): v is string => Boolean(v)),
   }
 }
 
@@ -154,11 +134,6 @@ export function tagsOf(person: Person): Set<string> {
   for (const key of FACET_ORDER) {
     for (const value of facets[key]) tags.add(`${key}:${value.toLowerCase()}`)
   }
-  // Interests and activities are poor facets but good similarity signal: if two
-  // people both wrote "rock climbing", that is a strong match even though only
-  // 35 people filled the field in at all.
-  for (const value of person.interests) tags.add(`interest:${value.toLowerCase()}`)
-  for (const value of person.activities) tags.add(`activity:${value.toLowerCase()}`)
   return tags
 }
 
@@ -167,19 +142,15 @@ export function tagsOf(person: Person): Set<string> {
  * whether two people should get coffee than sharing a professional interest.
  * So the intersection and union are both weighted by what the tag is.
  */
-const TAG_WEIGHTS: Record<string, number> = {
-  interest: 4,
-  professionalInterest: 3,
-  postMBAIndustry: 3,
-  activity: 2.5,
+const TAG_WEIGHTS: Record<FacetKey, number> = {
+  professionalInterest: 4,
   school: 2,
   preMBAIndustry: 1.5,
-  language: 1.5,
   region: 1,
 }
 
 function weightOf(tag: string): number {
-  return TAG_WEIGHTS[tag.slice(0, tag.indexOf(':'))] ?? 1
+  return TAG_WEIGHTS[tag.slice(0, tag.indexOf(':')) as FacetKey] ?? 1
 }
 
 export function similarity(a: Person, b: Person): number {
@@ -219,11 +190,9 @@ export function similarPeople(
     .map((other) => {
       const shared: string[] = []
       const facets = facetsOf(other)
-      const candidates = [
-        ...FACET_ORDER.flatMap((key) => facets[key].map((v) => [`${key}:${v.toLowerCase()}`, v] as const)),
-        ...other.interests.map((v) => [`interest:${v.toLowerCase()}`, v] as const),
-        ...other.activities.map((v) => [`activity:${v.toLowerCase()}`, v] as const),
-      ]
+      const candidates = FACET_ORDER.flatMap((key) =>
+        facets[key].map((v) => [`${key}:${v.toLowerCase()}`, v] as const),
+      )
       for (const [tag, original] of candidates) {
         if (mine.has(tag) && !shared.includes(original)) shared.push(original)
       }

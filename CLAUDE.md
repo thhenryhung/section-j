@@ -64,12 +64,17 @@ Learned the hard way. Ignoring these reintroduces real bugs.
   70 of 90 for activities, 55 for interests. Unfiltered it becomes the section's
   most popular interest and a facet chip reading *None Listed 70*. Everything
   scraped goes through `clean()` in `scripts/parse-classcards.ts`.
-- **Which fields get a facet is decided by measured coverage, not by what exists.**
-  Home region / education / pre-MBA role 90, languages 69, professional interests
-  61, interests 35, activities 20. Interests and activities are deliberately *not*
-  facets — a filter that can only match 20 people looks authoritative while
-  hiding the other 70 — but they carry the heaviest **similarity** weight, because
-  two people who both wrote "rock climbing" really are a match.
+- **Which fields exist is decided by measured coverage, not by what class cards
+  offer.** From 89 parsed cards: home region / education / pre-MBA role 89,
+  languages 68, professional interests 60, interests 34, HBS activities 19.
+  Professional interests is the only interest-style field in the MVP. Interests,
+  activities, languages, post-MBA goals and social links are **deliberately out of
+  scope** — a filter that can only match 19 people looks authoritative while
+  hiding the other 70. `docs/class-cards.md` records how each is laid out on the
+  card so they can be added back without rediscovering it.
+- **The results table prints names as "Last, First"**, despite the column heading
+  saying "Name". Assuming otherwise silently broke every name-based join. All name
+  matching goes through `nameKey()`, which sorts tokens so order cannot matter.
 - **`data/courses.json` contains placeholder professors, rooms and times.** The
   calendar currently shows fiction. Replacing it with the real schedule is the
   most useful small contribution available.
@@ -91,14 +96,18 @@ why pre-MBA industry is inferred rather than read.
 Built and pushed. `main` is current. Both repos in sync.
 
 - Harvest complete: 90/90 cards, 90 photos, zero failures.
-- Socials sheet merged (LinkedIn + Instagram for 40 of 90), joined by name.
-- **`scripts/parse-classcards.ts` has never been executed.** No `roster.json`
-  exists yet. Expect to iterate on cheerio selectors; its coverage report is the
-  acceptance test.
+- `parse-classcards.ts` runs and produced 89 people on its first execution. The
+  90th was dropped by the "Last, First" name-order bug, now fixed but **not yet
+  re-run** — expect 90 next time.
+- **Deferred until after the MVP**, by decision, not oversight: LinkedIn and
+  Instagram (a sheet covering 40 of 90 exists at `section-j-data/socials.csv`),
+  post-MBA goals, interests, HBS activities, languages.
+- `inferred industry` came back 89/89, which is suspicious for a keyword table —
+  `data:parse` now prints the distribution so it can be judged. If one bucket
+  holds most of the section, the facet is noise and the rules need tightening.
 - `SECTION_PASSPHRASE` is not set in either secret store.
-- Post-MBA goals, pronouns, dietary requirements and fun facts need a survey —
-  they are not on class cards. The fields exist and every view degrades
-  gracefully when empty, so this drops in later with no code changes.
+- Pronouns, dietary requirements and fun facts need a survey — they are not on
+  class cards. Fields exist and views degrade gracefully when empty.
 - The repo is currently **private**; it is intended to be public once the section
   has been told the site exists and given the opt-out in `PRIVACY.md`.
 

@@ -4,7 +4,6 @@
  * Inputs (all in the private data repo):
  *   raw/classcards.json      from scripts/browser/harvest.js — raw HTML + photos
  *   classcards-export.csv    the HBS contact export (phones, partner)
- *   socials.csv              the section's shared LinkedIn/Instagram sheet (optional)
  *   overrides.json           survey answers and opt-outs (optional)
  *
  * Outputs:
@@ -29,14 +28,13 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as cheerio from 'cheerio'
-import type { Education, Language, Person, PriorRole, Region, Roster } from '../src/lib/types'
+import type { Education, Person, PriorRole, Region, Roster } from '../src/lib/types'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const privateDir = path.resolve(repoRoot, '..', 'section-j-data')
 
 const harvestPath = path.join(privateDir, 'raw', 'classcards.json')
 const csvPath = path.join(privateDir, 'classcards-export.csv')
-const socialsPath = path.join(privateDir, 'socials.csv')
 const overridesPath = path.join(privateDir, 'overrides.json')
 const photosDir = path.join(privateDir, 'photos')
 const rosterPath = path.join(privateDir, 'roster.json')
@@ -138,16 +136,6 @@ function parseRegion(value: string | undefined): Region | undefined {
   }
 }
 
-/** Languages come as "Spanish - fluent", one per <br>. Some omit the level. */
-function parseLanguages(value: string | undefined): Language[] {
-  return splitList(value, /\|/).map((entry) => {
-    const match = /^(.*?)\s+-\s+(.*)$/.exec(entry)
-    return match
-      ? { name: match[1].trim(), level: clean(match[2])?.toLowerCase() }
-      : { name: entry }
-  })
-}
-
 /**
  * Pre-MBA industry, inferred from employer and title.
  *
@@ -157,35 +145,6 @@ function parseLanguages(value: string | undefined): Language[] {
  * directory's industry facet useful, not to be authoritative. Anyone it gets
  * wrong can correct themselves via overrides.json, which always wins.
  */
-/**
- * Accepts "@handle", "handle", or a full profile URL, returning the bare handle.
- * Instagram allows letters, digits, dots and underscores up to 30 characters —
- * anything else is a note or a typo, and is dropped rather than rendered as a
- * broken link.
- */
-function normaliseInstagram(raw: string | undefined): string | undefined {
-  const text = clean(raw)
-  if (!text) return undefined
-  const fromUrl = /instagram\.com\/([^/?#\s]+)/i.exec(text)
-  const handle = (fromUrl ? fromUrl[1] : text).replace(/^@/, '').trim()
-  return /^[A-Za-z0-9._]{1,30}$/.test(handle) ? handle : undefined
-}
-
-/**
- * Normalises a LinkedIn URL to https://www.linkedin.com/in/<slug>.
- *
- * The shared sheet holds three shapes: a bare /in/slug, one with a trailing
- * slash, and several carrying utm_source/utm_medium parameters pasted from the
- * mobile app. Those parameters record where the link was copied from, so they
- * are stripped rather than republished.
- */
-function normaliseLinkedIn(raw: string | undefined): string | undefined {
-  const text = clean(raw)
-  if (!text) return undefined
-  const match = /linkedin\.com\/(?:in|pub)\/([^/?#\s]+)/i.exec(text)
-  return match ? `https://www.linkedin.com/in/${match[1]}` : undefined
-}
-
 const INDUSTRY_RULES: Array<[string, RegExp]> = [
   ['Consulting', /\b(mckinsey|bain|bcg|boston consulting|deloitte|accenture|kearney|oliver wyman|consult)/i],
   ['Private Equity', /\b(private equity|blackstone|kkr|carlyle|apollo|tpg|warburg|advent|bain capital)\b/i],
@@ -236,10 +195,7 @@ type CardFields = {
   homeRegion?: Region
   birthday?: { month: number; day: number }
   startupExperience?: boolean
-  interests: string[]
   professionalInterests: string[]
-  activities: string[]
-  languages: Language[]
   preMBA: PriorRole[]
   education: Education[]
 }
@@ -313,12 +269,8 @@ function parseCard(entry: HarvestedPerson): CardFields {
     homeRegion: parseRegion(extras.get('home region')),
     birthday: parseBirthday(extras.get('birthday')),
     startupExperience: startupRaw ? /^yes$/i.test(startupRaw) : undefined,
-    // "Interests" and "HBS Activities" are comma-separated free text;
-    // "Professional Interests" and "Languages" are <br>-separated lists.
-    interests: splitList(extras.get('interests'), /[,|]/),
+    // <br>-separated on the card, so `|` after the delimiter substitution.
     professionalInterests: splitList(extras.get('professional interests'), /\|/),
-    activities: splitList(extras.get('hbs activities'), /[,|]/),
-    languages: parseLanguages(extras.get('languages')),
     preMBA,
     education,
   }
@@ -350,65 +302,45 @@ const overrides: Override[] = existsSync(overridesPath)
 
 const normaliseName = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
 
+/**
+ * The results table prints names as "Last, First" — not "First Last" as the
+ * column heading suggests. Convert to natural order for display.
+ */
+function toFirstLast(raw: string | undefined): string {
+  const text = clean(raw) ?? ''
+  const match = /^([^,]+),\s*(.+)$/.exec(text)
+  return match ? `${match[2].trim()} ${match[1].trim()}` : text
+}
+
+/**
+ * Order-insensitive name key: tokens lowercased, stripped of punctuation, sorted.
+ * "Alrashed, Sara", "Sara Alrashed" and "sara  alrashed" all collapse to the same
+ * value.
+ *
+ * Sorting the tokens is the whole point. The results table prints "Last, First"
+ * while the contact export holds First and Last in separate columns, so an
+ * earlier version that matched on concatenation never joined at all — it silently
+ * dropped the one classmate whose row carries no mailto and who therefore depends
+ * on the name fallback.
+ */
+function nameKey(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .sort()
+    .join(' ')
+}
+
 const csvByEmail = new Map<string, Record<string, string>>()
 const csvByName = new Map<string, Record<string, string>>()
 for (const row of csvRows) {
   const email = row['E-mail Address']?.toLowerCase()
   if (email) csvByEmail.set(email, row)
-  const name = normaliseName(`${row['First Name']}${row['Last Name']}`)
+  const name = nameKey(`${row['First Name']} ${row['Last Name']}`)
   if (name) csvByName.set(name, row)
 }
-
-/**
- * Socials come from a sheet the section filled in by hand, and it has no email
- * column — so the only join key is a typed name. Matching is therefore lenient:
- * exact normalised name first, then last name plus first initial, which catches
- * "Mike"/"Michael" and dropped middle names. A name matching two people is
- * reported rather than guessed at, because attaching the wrong Instagram
- * account to somebody is worse than attaching none.
- */
-type Social = { instagram?: string; linkedin?: string; sheetName: string }
-const socialsByName = new Map<string, Social>()
-const socialsByLastAndInitial = new Map<string, Social | null>()
-const socialSheetNames: string[] = []
-
-if (existsSync(socialsPath)) {
-  for (const row of parseCSV(readFileSync(socialsPath, 'utf8'))) {
-    // Header casing varies with whoever last edited the sheet.
-    const get = (key: string) =>
-      Object.entries(row).find(([k]) => k.trim().toLowerCase() === key)?.[1]
-    const name = clean(get('name'))
-    if (!name) continue
-    const social: Social = {
-      instagram: normaliseInstagram(get('instagram')),
-      linkedin: normaliseLinkedIn(get('linkedin url') ?? get('linkedin')),
-      sheetName: name,
-    }
-    if (!social.instagram && !social.linkedin) continue
-
-    socialSheetNames.push(name)
-    socialsByName.set(normaliseName(name), social)
-
-    const parts = name.split(/\s+/).filter(Boolean)
-    if (parts.length >= 2) {
-      const key = `${normaliseName(parts[parts.length - 1])}|${normaliseName(parts[0])[0] ?? ''}`
-      // null marks an ambiguous key, so it is never used for a match.
-      socialsByLastAndInitial.set(key, socialsByLastAndInitial.has(key) ? null : social)
-    }
-  }
-}
-
-function findSocial(displayName: string, firstName: string, lastName: string): Social | undefined {
-  const direct =
-    socialsByName.get(normaliseName(displayName)) ??
-    socialsByName.get(normaliseName(`${firstName}${lastName}`))
-  if (direct) return direct
-  if (!lastName || !firstName) return undefined
-  const loose = socialsByLastAndInitial.get(`${normaliseName(lastName)}|${normaliseName(firstName)[0] ?? ''}`)
-  return loose ?? undefined
-}
-
-const matchedSocialNames = new Set<string>()
 
 const usedIds = new Set<string>()
 function makeId(email: string | undefined, displayName: string): string {
@@ -431,11 +363,10 @@ let photosWritten = 0
 for (const entry of harvest.people) {
   const card = parseCard(entry)
 
-  // Card name is "Last, First"; the results cell is "First Last".
-  const displayName = clean(entry.nameCell) ?? ''
+  // The results cell prints "Last, First" despite its "Name" heading.
+  const displayName = toFirstLast(entry.nameCell)
   const csvRow =
-    (card.email ? csvByEmail.get(card.email) : undefined) ??
-    csvByName.get(normaliseName(displayName))
+    (card.email ? csvByEmail.get(card.email) : undefined) ?? csvByName.get(nameKey(displayName))
 
   if (!card.email && !csvRow) {
     warnings.push(`No email and no CSV match for prsnId ${entry.prsnId} — skipped.`)
@@ -455,9 +386,6 @@ for (const entry of harvest.people) {
 
   const override = overrides.find((o) => o.email?.toLowerCase() === email)
   if (override?.exclude) continue
-
-  const social = findSocial(displayName, firstName, lastName)
-  if (social) matchedSocialNames.add(social.sheetName)
 
   // Prefer the CSV's preferred phone — it is the number the person chose.
   const preferred = clean(csvRow?.['Preferred Phone'])
@@ -480,16 +408,10 @@ for (const entry of harvest.people) {
     homeRegion: card.homeRegion,
     preMBA: card.preMBA,
     education: card.education,
-    postMBA: override?.postMBA,
-    interests: override?.interests ?? card.interests,
     professionalInterests: override?.professionalInterests ?? card.professionalInterests,
-    activities: override?.activities ?? card.activities,
-    languages: card.languages,
     birthday: override?.hideBirthday ? undefined : card.birthday,
     startupExperience:
       card.startupExperience ?? (clean(csvRow?.['Start-up Experience']) === 'Yes' || undefined),
-    linkedin: override?.linkedin ?? social?.linkedin,
-    instagram: override?.instagram ?? social?.instagram,
     pronouns: override?.pronouns,
     funFact: override?.funFact,
     dietary: override?.dietary,
@@ -533,31 +455,25 @@ const rows: Array<[string, number]> = [
   ['inferred industry', count((p) => Boolean(p.preMBA[0]?.industry))],
   ['education', count((p) => p.education.length > 0)],
   ['professional interests', count((p) => p.professionalInterests.length > 0)],
-  ['languages', count((p) => p.languages.length > 0)],
-  ['interests', count((p) => p.interests.length > 0)],
-  ['activities', count((p) => p.activities.length > 0)],
-  ['linkedin (sheet)', count((p) => Boolean(p.linkedin))],
-  ['instagram (sheet)', count((p) => Boolean(p.instagram))],
-  ['post-MBA goals (survey)', count((p) => Boolean(p.postMBA))],
 ]
 for (const [label, n] of rows) {
   const bar = '█'.repeat(Math.round((n / people.length) * 24)).padEnd(24, '·')
   console.log(`  ${label.padEnd(24)} ${bar} ${n}/${people.length}`)
 }
-
-// Sheet rows that matched nobody are almost always a spelling difference
-// between the sheet and the class card, and each one is a classmate silently
-// missing their links. Name them so they can be fixed by hand.
-if (socialSheetNames.length > 0) {
-  const unmatched = socialSheetNames.filter((n) => !matchedSocialNames.has(n))
-  console.log('')
-  console.log(
-    `Socials sheet: ${matchedSocialNames.size} of ${socialSheetNames.length} rows matched a classmate.`,
-  )
-  if (unmatched.length > 0) {
-    console.log(`  ${unmatched.length} row(s) matched nobody — check the spelling against the roster:`)
-    for (const name of unmatched) console.log(`    · ${name}`)
-  }
+/**
+ * A keyword table that classifies 100% of people is not classifying anyone — it
+ * means some rule is matching incidental words. Print the spread so the industry
+ * facet can be judged on the evidence instead of trusted because it is populated.
+ */
+const industryCounts = new Map<string, number>()
+for (const person of people) {
+  const industry = person.preMBA[0]?.industry
+  industryCounts.set(industry ?? '(unclassified)', (industryCounts.get(industry ?? '(unclassified)') ?? 0) + 1)
+}
+console.log('')
+console.log('Inferred pre-MBA industry (keyword-based, approximate):')
+for (const [industry, n] of [...industryCounts].sort((a, b) => b[1] - a[1])) {
+  console.log(`  ${industry.padEnd(30)} ${n}`)
 }
 
 if (warnings.length > 0) {

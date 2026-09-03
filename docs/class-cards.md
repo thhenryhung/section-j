@@ -16,7 +16,7 @@ re-parse instead of another 90 requests to HBS.
 |---|---|
 | `[0]` | empty — DataTables control column |
 | `[1]` | `<img>` portrait, plus a link to `detail.do?prsnId=…` |
-| `[2]` | `td.sorting_1` — display name, "First Last" |
+| `[2]` | `td.sorting_1` — the name, printed **"Last, First"** despite the "Name" heading |
 | `[3]` | section |
 | `[4]` | contact: `div > span.ctryCode` (country code) then a text node with the number, and a second `div > a[href^=mailto:]` |
 | `[5]` | empty |
@@ -33,7 +33,11 @@ Two traps:
 ## Detail page
 
 `detail.do?prsnId=<id>`, roughly 29–39 KB. `h2.clearfix` holds the name as
-**"Last, First"** (the results cell has it as "First Last").
+**"Last, First"**, the same order as the results cell.
+
+**Both places print "Last, First".** Assuming the results column matched its
+"Name" heading is what silently broke every name-based join on the first real
+run — see `toFirstLast()` and `nameKey()` in the parser.
 
 `#profile-panels` contains three panels:
 
@@ -59,17 +63,22 @@ Repeated `div.row.mb-1`, each holding:
 - `div.col-xs-4.text-sm-right.text-muted` — the **label**
 - `div.col-xs-8` — the **value**, with `<br>` separating repeated values
 
-Seven labels, all present on all 90 cards:
+Seven labels, all present on all 90 cards. Coverage is from the first real parse,
+*after* stripping `'None Listed'`:
 
-| Label | Shape | Real coverage |
-|---|---|---|
-| Home Region | comma-separated, 2–4 parts; last is country, first is city | 90 |
-| Birthday | `M/D` — **no year is present or stored** | 90 |
-| Start-up Experience | `Yes` / `No` | 76 |
-| Languages | `Language - level`, `<br>`-separated | 69 |
-| Professional Interests | `<br>`-separated list, up to 11 | 61 |
-| Interests | comma-separated free text | 35 |
-| HBS Activities | comma-separated free text | 20 |
+| Label | Shape | Coverage | In the MVP? |
+|---|---|---|---|
+| Home Region | comma-separated, 2–4 parts; last is country, first is city | 89 | yes |
+| Birthday | `M/D` — **no year is present or stored** | 89 | yes |
+| Start-up Experience | `Yes` / `No` | 76 | yes |
+| Professional Interests | `<br>`-separated list, up to 11 | 60 | yes |
+| Languages | `Language - level`, `<br>`-separated | 68 | **deferred** |
+| Interests | comma-separated free text | 34 | **deferred** |
+| HBS Activities | comma-separated free text | 19 | **deferred** |
+
+The deferred three are parsed by nothing today. Re-adding one means restoring its
+field on `Person`, a `splitList` call in `parseCard`, and a facet entry — the
+shapes above are all the information that needs rediscovering.
 
 ## `'None Listed'`
 
@@ -85,25 +94,27 @@ common. Every scraped value goes through `clean()`, which also collapses
 The coverage column above is *after* stripping it, and those numbers are what
 decide which fields earn a facet — see `CLAUDE.md`.
 
-## The socials sheet
+## The socials sheet — deferred, not lost
 
-A Google Sheet the section filled in by hand: `name, instagram, linkedin url, beli`.
-40 rows.
+`section-j-data/socials.csv`, a Google Sheet the section filled in by hand:
+`name, instagram, linkedin url, beli`. 40 of 90 people.
 
-It has **no email column**, so the only join key is a typed name. Matching is
-exact-normalised first, then last name plus first initial to catch Mike/Michael and
-dropped middle names. A key matching two people is poisoned and skipped —
-attaching the wrong Instagram account to somebody is worse than attaching none.
-Unmatched rows are printed by name at the end of `data:parse`, because each one is
-a classmate silently missing their links.
+**Out of scope for the MVP.** The parser no longer reads it. Notes for whoever
+puts it back:
 
-LinkedIn URLs arrive in three shapes and several carry `utm_source`/`utm_medium`
-parameters pasted from the mobile app. Those record where the link was copied
-from, so they are stripped; everything normalises to
-`https://www.linkedin.com/in/<slug>`. Instagram accepts `@handle`, `handle` or a
-full URL and stores the bare handle.
-
-The `beli` column (10 rows) is currently ignored.
+- It has **no email column**, so the only join key is a typed name — and both the
+  card and the export print names in an order the sheet does not. Use `nameKey()`,
+  which already handles this. A key matching two people must be skipped, not
+  guessed: the wrong Instagram account on a classmate is worse than none.
+- LinkedIn URLs arrive in three shapes, several carrying `utm_source`/`utm_medium`
+  parameters pasted from the mobile app. Those record where the link was copied
+  from and should be stripped; normalise to `https://www.linkedin.com/in/<slug>`.
+- Instagram values may be `@handle`, `handle`, or a full URL. Store the bare
+  handle; validate against `^[A-Za-z0-9._]{1,30}$` so a stray note does not become
+  a broken link.
+- Print unmatched sheet rows by name — each one is a classmate silently missing
+  their links, which is invisible otherwise.
+- The `beli` column (10 rows) was never used.
 
 ## Photos
 

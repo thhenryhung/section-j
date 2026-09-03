@@ -2,14 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { PersonPhoto } from './PersonPhoto'
 import { useSectionData } from '../gate/SectionData'
-import {
-  currentRoleLabel,
-  languageLabel,
-  regionLabel,
-  similarPeople,
-  telHref,
-  whatsappHref,
-} from '../lib/people'
+import { currentRoleLabel, regionLabel, similarPeople, telHref, whatsappHref } from '../lib/people'
 import type { Person } from '../lib/types'
 
 const MONTHS = [
@@ -120,26 +113,6 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
                 WhatsApp
               </a>
             )}
-            {person.linkedin && (
-              <a
-                href={person.linkedin}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border border-ink-300 px-3 py-1.5 text-sm dark:border-ink-700"
-              >
-                LinkedIn
-              </a>
-            )}
-            {person.instagram && (
-              <a
-                href={`https://instagram.com/${person.instagram}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border border-ink-300 px-3 py-1.5 text-sm dark:border-ink-700"
-              >
-                @{person.instagram}
-              </a>
-            )}
           </div>
 
           <p className="text-sm text-ink-500">
@@ -197,38 +170,6 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
           {person.professionalInterests.length > 0 && (
             <Section title="Professional interests">
               <Chips items={person.professionalInterests} />
-            </Section>
-          )}
-
-          {person.languages.length > 0 && (
-            <Section title="Languages">
-              <Chips items={person.languages.map(languageLabel)} />
-            </Section>
-          )}
-
-          {person.postMBA && (
-            <Section title="After HBS">
-              <div className="flex flex-col gap-2">
-                {person.postMBA.industries.length > 0 && <Chips items={person.postMBA.industries} />}
-                {person.postMBA.functions.length > 0 && (
-                  <p className="text-xs text-ink-500">{person.postMBA.functions.join(' · ')}</p>
-                )}
-                {person.postMBA.geographies.length > 0 && (
-                  <p className="text-xs text-ink-400">Looking at {person.postMBA.geographies.join(', ')}</p>
-                )}
-              </div>
-            </Section>
-          )}
-
-          {person.interests.length > 0 && (
-            <Section title="Interests">
-              <Chips items={person.interests} />
-            </Section>
-          )}
-
-          {person.activities.length > 0 && (
-            <Section title="Clubs & activities">
-              <Chips items={person.activities} />
             </Section>
           )}
 
