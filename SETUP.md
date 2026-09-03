@@ -3,19 +3,20 @@
 For whoever runs the site — the first time, or after handover. If you just want to
 contribute a feature, you want [CONTRIBUTING.md](CONTRIBUTING.md) instead.
 
-Replace `<you>` with your GitHub username or the section's org name throughout.
+Paths below use `thhenryhung` as the repo owner. If the section moves these to a
+GitHub organisation later, that owner is the one thing to change throughout.
 
 ## 1. Two repositories
 
 | Repo | Visibility | Holds |
 |---|---|---|
-| `<you>/section-j` | **Public** | This code. Anyone can fork and PR. |
-| `<you>/section-j-data` | **Private** | The real roster, photos, meetup history. |
+| `thhenryhung/section-j` | **Public** | This code. Anyone can fork and PR. |
+| `thhenryhung/section-j-data` | **Private** | The real roster, photos, meetup history. |
 
 Create both empty on GitHub, then push this code to the public one:
 
 ```bash
-git remote add origin https://github.com/<you>/section-j.git
+git remote add origin https://github.com/thhenryhung/section-j.git
 git push -u origin main
 ```
 
@@ -69,7 +70,7 @@ In the **public** repo → Settings → Secrets and variables → Actions:
 
 | Name | Value |
 |---|---|
-| `DATA_REPO` | `<you>/section-j-data` |
+| `DATA_REPO` | `thhenryhung/section-j-data` |
 | `CLOUDFLARE_PROJECT` | The Pages project name from step 3 |
 
 Scope the PAT to that one repo and to Contents:read only. It is the key to the
@@ -86,7 +87,7 @@ problem if it ever leaks.
 #   produces section-j-data/raw/ and section-j-data/photos/
 
 npm run data:parse      # raw HTML + CSV + overrides -> roster.json
-npm run data:photos     # photos -> 400px webp bundle
+npm run data:photos     # photos -> webp bundle (300px ceiling, no upscaling)
 npm run check:leaks     # confirm nothing real reached the public repo
 ```
 

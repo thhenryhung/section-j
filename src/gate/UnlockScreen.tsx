@@ -82,7 +82,9 @@ export function UnlockScreen() {
         <p className="mt-6 text-center text-xs text-ink-400">
           Built by the section, for the section.{' '}
           <a
-            href="https://github.com/"
+            href="https://github.com/thhenryhung/section-j"
+            target="_blank"
+            rel="noreferrer"
             className="underline underline-offset-2 hover:text-crimson-600"
           >
             Contribute on GitHub
