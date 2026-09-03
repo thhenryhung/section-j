@@ -1,0 +1,16 @@
+# Normalise line endings so the repo is identical on Windows, macOS, and the
+# Linux containers CI and Codespaces run in. Without this, switching machines
+# produces whole-file diffs that bury the real changes.
+* text=auto eol=lf
+
+# Binary assets git must not touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.enc binary
+*.xls binary
+*.xlsx binary

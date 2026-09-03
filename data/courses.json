@@ -1,0 +1,62 @@
+[
+  {
+    "id": "frc",
+    "name": "FRC — Financial Reporting & Control",
+    "professor": "TBC",
+    "room": "Aldrich TBC",
+    "daysOfWeek": [1, 3],
+    "startTime": "08:30",
+    "endTime": "09:50",
+    "startDate": "2026-09-08",
+    "endDate": "2026-12-04",
+    "exceptions": ["2026-11-26", "2026-11-27"]
+  },
+  {
+    "id": "lead",
+    "name": "LEAD — Leadership & Organizational Behavior",
+    "professor": "TBC",
+    "room": "Aldrich TBC",
+    "daysOfWeek": [1, 3],
+    "startTime": "10:10",
+    "endTime": "11:30",
+    "startDate": "2026-09-08",
+    "endDate": "2026-12-04",
+    "exceptions": ["2026-11-26", "2026-11-27"]
+  },
+  {
+    "id": "tom",
+    "name": "TOM — Technology & Operations Management",
+    "professor": "TBC",
+    "room": "Aldrich TBC",
+    "daysOfWeek": [2, 4],
+    "startTime": "08:30",
+    "endTime": "09:50",
+    "startDate": "2026-09-08",
+    "endDate": "2026-12-04",
+    "exceptions": ["2026-11-26", "2026-11-27"]
+  },
+  {
+    "id": "mkt",
+    "name": "MKT — Marketing",
+    "professor": "TBC",
+    "room": "Aldrich TBC",
+    "daysOfWeek": [2, 4],
+    "startTime": "10:10",
+    "endTime": "11:30",
+    "startDate": "2026-09-08",
+    "endDate": "2026-12-04",
+    "exceptions": ["2026-11-26", "2026-11-27"]
+  },
+  {
+    "id": "fin1",
+    "name": "FIN1 — Finance I",
+    "professor": "TBC",
+    "room": "Aldrich TBC",
+    "daysOfWeek": [5],
+    "startTime": "08:30",
+    "endTime": "09:50",
+    "startDate": "2026-09-11",
+    "endDate": "2026-12-04",
+    "exceptions": ["2026-11-27"]
+  }
+]

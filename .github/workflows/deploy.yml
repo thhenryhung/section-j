@@ -1,0 +1,73 @@
+name: Deploy
+
+# Builds the real site and publishes it to Cloudflare Pages.
+#
+# Only runs on pushes to main in this repository, never on pull requests — this
+# is the only job that can see the private roster or the section passphrase.
+on:
+  push:
+    branches: [main]
+  # Lets you redeploy after updating the private data repo, without a code change.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+# The scripts expect the private data as a sibling of the site checkout
+# (../section-j-data). actions/checkout refuses to write outside the workspace, so
+# both repos are checked out into subdirectories to reproduce that layout.
+defaults:
+  run:
+    working-directory: section-j
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+        with:
+          path: section-j
+
+      - name: Check out the private data
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.DATA_REPO }}
+          # Fine-grained PAT with read-only contents access to the data repo.
+          token: ${{ secrets.DATA_REPO_TOKEN }}
+          path: section-j-data
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: section-j/package-lock.json
+
+      - run: npm ci
+
+      - name: Normalise photos
+        run: npm run data:photos
+
+      - name: Build
+        run: npm run build
+        env:
+          SECTION_PASSPHRASE: ${{ secrets.SECTION_PASSPHRASE }}
+
+      # The encrypted payloads are opaque, but if a plaintext roster somehow
+      # reached dist/ this stops it before it reaches the CDN.
+      - name: Verify no plaintext personal data in the build
+        run: npm run check:leaks
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: section-j
+          command: pages deploy dist --project-name=${{ vars.CLOUDFLARE_PROJECT }} --branch=main

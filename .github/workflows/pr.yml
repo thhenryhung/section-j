@@ -1,0 +1,43 @@
+name: Pull request
+
+# Runs on every PR, including from forks.
+#
+# This job MUST NOT be given access to the private data repo or the section
+# passphrase. Fork PRs building against synthetic data only is the security
+# boundary, not an inconvenience to work around. `pull_request` (rather than
+# `pull_request_target`) is what guarantees it: untrusted code from a fork runs
+# without repository secrets.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Runs first: if someone has committed personal data, say so before
+      # spending time on anything else.
+      - name: Check for leaked personal data
+        run: npm run check:leaks
+
+      - name: Type-check and build against sample data
+        run: npm run build
+        env:
+          USE_SAMPLE: '1'
+          SECTION_PASSPHRASE: demo
+
+      # The built output is the last place personal data could hide.
+      - name: Re-check the build output
+        run: npm run check:leaks

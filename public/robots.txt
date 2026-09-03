@@ -1,0 +1,4 @@
+# This site holds section members' contact details behind a passphrase.
+# It should never appear in a search result.
+User-agent: *
+Disallow: /

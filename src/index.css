@@ -1,0 +1,89 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens.
+ *
+ * One accent (Harvard crimson) against a warm neutral scale, and a typographic
+ * pairing of a serif for names and headings with the system UI stack for
+ * everything else — it should read like a printed section facebook, not a SaaS
+ * dashboard.
+ */
+@theme {
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+
+  --color-crimson-50: #fdf3f4;
+  --color-crimson-100: #fbe3e6;
+  --color-crimson-200: #f6cbd1;
+  --color-crimson-400: #d4576b;
+  --color-crimson-600: #a51c30;
+  --color-crimson-700: #8a1728;
+  --color-crimson-900: #4d0d16;
+
+  --color-ink-50: #f8f7f5;
+  --color-ink-100: #f0eeea;
+  --color-ink-200: #e2dfd8;
+  --color-ink-300: #cbc6bc;
+  --color-ink-400: #9c968a;
+  --color-ink-500: #6f6a61;
+  --color-ink-600: #55514a;
+  --color-ink-700: #3d3a35;
+  --color-ink-800: #26241f;
+  --color-ink-900: #16150f;
+  --color-ink-950: #0d0c08;
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-ink-50 text-ink-800 font-sans antialiased;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      @apply bg-ink-950 text-ink-100;
+    }
+  }
+
+  /* Keyboard focus should always be obvious — this is a site people tab through. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-crimson-600;
+  }
+
+  ::selection {
+    @apply bg-crimson-200 text-crimson-900;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-ink-200 bg-white shadow-sm;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .card {
+      @apply border-ink-800 bg-ink-900;
+    }
+  }
+}
+
+/* Respect a reduced-motion preference everywhere, including the quiz animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
