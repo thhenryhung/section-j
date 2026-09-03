@@ -1,11 +1,20 @@
 /**
  * Derived views over a Person — labels, facets, and similarity.
  *
- * Kept separate from the components so the same logic backs the directory, the
- * quiz distractor picker, and the dinner allocator's diversity nudges.
+ * Which fields are facets is driven by measured coverage in the real section,
+ * not by what class cards happen to offer. From 90 harvested cards:
+ *
+ *   home region  90    education      90    pre-MBA role  90
+ *   languages    69    prof. interests 61
+ *   interests    35    HBS activities 20
+ *
+ * Interests and activities are kept on the person and shown on their profile,
+ * but they are deliberately NOT facets: a filter that can only ever match 20
+ * people is worse than no filter, because it looks authoritative and quietly
+ * hides the other 70.
  */
 
-import type { Person, Region } from './types'
+import type { Language, Person, Region } from './types'
 
 export function regionLabel(region?: Region): string | undefined {
   if (!region) return undefined
@@ -20,11 +29,18 @@ export function currentRoleLabel(person: Person): string | undefined {
   return role.title ?? role.company
 }
 
+export function schoolLabel(person: Person): string | undefined {
+  return person.education[0]?.school
+}
+
+export function languageLabel(language: Language): string {
+  return language.level ? `${language.name} (${language.level})` : language.name
+}
+
 export function initials(person: Person): string {
   return `${person.firstName[0] ?? ''}${person.lastName[0] ?? ''}`.toUpperCase()
 }
 
-/** Digits only, for a `tel:` href. */
 export function telHref(phone?: string): string | undefined {
   if (!phone) return undefined
   const digits = phone.replace(/[^\d+]/g, '')
@@ -41,40 +57,60 @@ export function whatsappHref(phone?: string): string | undefined {
 // Facets
 // ---------------------------------------------------------------------------
 
-export type FacetKey = 'region' | 'preMBAIndustry' | 'postMBAIndustry' | 'interest' | 'activity'
+export type FacetKey =
+  | 'professionalInterest'
+  | 'postMBAIndustry'
+  | 'preMBAIndustry'
+  | 'region'
+  | 'language'
+  | 'school'
 
 export const FACET_LABELS: Record<FacetKey, string> = {
-  region: 'Home region',
-  preMBAIndustry: 'Pre-MBA industry',
+  professionalInterest: 'Professional interest',
   postMBAIndustry: 'Post-MBA goal',
-  interest: 'Interest',
-  activity: 'Club or activity',
+  preMBAIndustry: 'Pre-MBA industry',
+  region: 'Home region',
+  language: 'Language',
+  school: 'University',
 }
 
-/** The values a single person contributes to each facet. */
+/** Ordered by how much data actually backs each one. */
+export const FACET_ORDER: FacetKey[] = [
+  'professionalInterest',
+  'postMBAIndustry',
+  'preMBAIndustry',
+  'region',
+  'language',
+  'school',
+]
+
 export function facetsOf(person: Person): Record<FacetKey, string[]> {
   return {
-    region: [person.homeRegion?.country].filter((v): v is string => Boolean(v)),
-    preMBAIndustry: person.preMBA
-      .map((r) => r.industry)
-      .filter((v): v is string => Boolean(v)),
+    professionalInterest: person.professionalInterests,
     postMBAIndustry: person.postMBA?.industries ?? [],
-    interest: person.interests,
-    activity: person.activities,
+    preMBAIndustry: person.preMBA
+      .map((role) => role.industry)
+      .filter((v): v is string => Boolean(v)),
+    region: [person.homeRegion?.country].filter((v): v is string => Boolean(v)),
+    // Level is dropped for faceting: "Spanish" should match whether someone
+    // marked themselves fluent or conversational.
+    language: person.languages.map((l) => l.name),
+    school: person.education
+      .map((e) => e.school)
+      .filter((v): v is string => Boolean(v)),
   }
 }
 
-/** Every facet value present in the section, with counts, most common first. */
-export function collectFacets(people: Person[]): Record<FacetKey, Array<{ value: string; count: number }>> {
-  const keys: FacetKey[] = ['region', 'preMBAIndustry', 'postMBAIndustry', 'interest', 'activity']
-  const tallies = Object.fromEntries(keys.map((k) => [k, new Map<string, number>()])) as Record<
-    FacetKey,
-    Map<string, number>
-  >
+export function collectFacets(
+  people: Person[],
+): Record<FacetKey, Array<{ value: string; count: number }>> {
+  const tallies = Object.fromEntries(
+    FACET_ORDER.map((k) => [k, new Map<string, number>()]),
+  ) as Record<FacetKey, Map<string, number>>
 
   for (const person of people) {
     const facets = facetsOf(person)
-    for (const key of keys) {
+    for (const key of FACET_ORDER) {
       for (const value of new Set(facets[key])) {
         tallies[key].set(value, (tallies[key].get(value) ?? 0) + 1)
       }
@@ -82,7 +118,7 @@ export function collectFacets(people: Person[]): Record<FacetKey, Array<{ value:
   }
 
   return Object.fromEntries(
-    keys.map((key) => [
+    FACET_ORDER.map((key) => [
       key,
       [...tallies[key].entries()]
         .map(([value, count]) => ({ value, count }))
@@ -94,17 +130,16 @@ export function collectFacets(people: Person[]): Record<FacetKey, Array<{ value:
 export type FacetSelection = Partial<Record<FacetKey, string[]>>
 
 /**
- * Filter semantics: OR within a facet, AND across facets. Picking two interests
- * widens the result; picking an interest and a region narrows it. That is what
- * people expect from faceted search, and it is the only combination that makes
- * "rock climbing OR sailing, based in Brazil" expressible.
+ * OR within a facet, AND across facets. Picking two languages widens the result;
+ * picking a language and a region narrows it. It is the only combination that
+ * makes "speaks Portuguese or Spanish, from Brazil" expressible.
  */
 export function matchesFacets(person: Person, selection: FacetSelection): boolean {
   const facets = facetsOf(person)
   for (const [key, wanted] of Object.entries(selection) as Array<[FacetKey, string[]]>) {
     if (!wanted || wanted.length === 0) continue
-    const has = new Set(facets[key])
-    if (!wanted.some((value) => has.has(value))) return false
+    const has = new Set(facets[key].map((v) => v.toLowerCase()))
+    if (!wanted.some((value) => has.has(value.toLowerCase()))) return false
   }
   return true
 }
@@ -113,36 +148,38 @@ export function matchesFacets(person: Person, selection: FacetSelection): boolea
 // Similarity — "people like me"
 // ---------------------------------------------------------------------------
 
-/**
- * A person's tag set, namespaced so an interest called "Consulting" can never
- * collide with an industry called "Consulting".
- */
 export function tagsOf(person: Person): Set<string> {
   const tags = new Set<string>()
   const facets = facetsOf(person)
-  for (const [key, values] of Object.entries(facets)) {
-    for (const value of values) tags.add(`${key}:${value.toLowerCase()}`)
+  for (const key of FACET_ORDER) {
+    for (const value of facets[key]) tags.add(`${key}:${value.toLowerCase()}`)
   }
+  // Interests and activities are poor facets but good similarity signal: if two
+  // people both wrote "rock climbing", that is a strong match even though only
+  // 35 people filled the field in at all.
+  for (const value of person.interests) tags.add(`interest:${value.toLowerCase()}`)
+  for (const value of person.activities) tags.add(`activity:${value.toLowerCase()}`)
   return tags
 }
 
 /**
- * Weighted overlap. Shared interests and post-MBA goals say far more about
- * whether two people should get coffee than a shared home country does, so plain
- * Jaccard is a poor fit — a weighted intersection over the union is closer to
- * what someone means by "similar to me".
+ * Plain Jaccard is a poor fit: sharing a home country says far less about
+ * whether two people should get coffee than sharing a professional interest.
+ * So the intersection and union are both weighted by what the tag is.
  */
-const TAG_WEIGHTS: Record<FacetKey, number> = {
-  interest: 3,
+const TAG_WEIGHTS: Record<string, number> = {
+  interest: 4,
+  professionalInterest: 3,
   postMBAIndustry: 3,
-  activity: 2,
+  activity: 2.5,
+  school: 2,
   preMBAIndustry: 1.5,
+  language: 1.5,
   region: 1,
 }
 
 function weightOf(tag: string): number {
-  const key = tag.slice(0, tag.indexOf(':')) as FacetKey
-  return TAG_WEIGHTS[key] ?? 1
+  return TAG_WEIGHTS[tag.slice(0, tag.indexOf(':'))] ?? 1
 }
 
 export function similarity(a: Person, b: Person): number {
@@ -152,33 +189,43 @@ export function similarity(a: Person, b: Person): number {
 
   let intersection = 0
   let union = 0
-  const seen = new Set<string>()
 
   for (const tag of tagsA) {
-    seen.add(tag)
     union += weightOf(tag)
     if (tagsB.has(tag)) intersection += weightOf(tag)
   }
   for (const tag of tagsB) {
-    if (!seen.has(tag)) union += weightOf(tag)
+    if (!tagsA.has(tag)) union += weightOf(tag)
   }
 
   return union === 0 ? 0 : intersection / union
 }
 
-/** The `limit` people most similar to `person`, excluding themselves. */
+/**
+ * The `limit` people most similar to `person`.
+ *
+ * `shared` returns the original casing rather than the lowercased tag, so the UI
+ * can print "Rock climbing" instead of "rock climbing".
+ */
 export function similarPeople(
   person: Person,
   people: Person[],
   limit = 6,
 ): Array<{ person: Person; score: number; shared: string[] }> {
   const mine = tagsOf(person)
+
   return people
     .filter((other) => other.id !== person.id)
     .map((other) => {
       const shared: string[] = []
-      for (const tag of tagsOf(other)) {
-        if (mine.has(tag)) shared.push(tag.slice(tag.indexOf(':') + 1))
+      const facets = facetsOf(other)
+      const candidates = [
+        ...FACET_ORDER.flatMap((key) => facets[key].map((v) => [`${key}:${v.toLowerCase()}`, v] as const)),
+        ...other.interests.map((v) => [`interest:${v.toLowerCase()}`, v] as const),
+        ...other.activities.map((v) => [`activity:${v.toLowerCase()}`, v] as const),
+      ]
+      for (const [tag, original] of candidates) {
+        if (mine.has(tag) && !shared.includes(original)) shared.push(original)
       }
       return { person: other, score: similarity(person, other), shared }
     })

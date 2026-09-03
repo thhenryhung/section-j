@@ -16,7 +16,7 @@ import { writeFileSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mulberry32 } from '../src/lib/pairing'
-import type { Person, Roster } from '../src/lib/types'
+import type { Language, Person, Roster } from '../src/lib/types'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dataDir = path.join(repoRoot, 'data')
@@ -142,6 +142,36 @@ const ACTIVITIES = [
 
 const DIETARY = ['Vegetarian', 'Vegan', 'Halal', 'Kosher', 'Gluten-free', 'No shellfish', 'Nut allergy']
 
+const PROFESSIONAL_INTERESTS = [
+  'Private Equity', 'Growth Equity', 'Venture Capital', 'Product Management',
+  'Corporate Strategy', 'General Management', 'Impact Investing', 'Healthcare Delivery',
+  'Climate Technology', 'Consumer Brands', 'Supply Chain', 'Fintech', 'Real Estate Development',
+  'Entrepreneurship', 'Media & Entertainment', 'Public Policy', 'Artificial Intelligence',
+]
+
+const SCHOOLS = [
+  'Universidade de Sao Paulo', 'Indian Institute of Technology Bombay', 'Politecnico di Milano',
+  'University of Tokyo', 'American University of Beirut', 'Universidad de los Andes',
+  'Warsaw School of Economics', 'KTH Royal Institute of Technology', 'Cairo University',
+  'Seoul National University', 'University of Nairobi', 'Tecnologico de Monterrey',
+  'Technical University of Munich', 'National University of Singapore', 'Cornell University',
+  'University of Michigan', 'Georgia Institute of Technology', 'McGill University',
+  'University of Edinburgh', 'Rice University',
+]
+
+const DEGREES = [
+  'BS, Mechanical Engineering', 'BA, Economics', 'BS, Computer Science',
+  'BEng, Electrical Engineering', 'BA, Political Science', 'BCom, Finance',
+  'BSc, Mathematics', 'BA, History', 'BS, Industrial Engineering', 'BA, International Relations',
+]
+
+const LANGUAGE_NAMES = [
+  'English', 'Spanish', 'Mandarin', 'Portuguese', 'French', 'Arabic', 'Hindi', 'German',
+  'Japanese', 'Korean', 'Italian', 'Swahili', 'Polish', 'Swedish', 'Turkish',
+]
+
+const LANGUAGE_LEVELS = ['native', 'fluent', 'conversational', 'basic']
+
 const PRONOUNS = ['she/her', 'he/him', 'they/them']
 
 const FUN_FACTS = [
@@ -185,10 +215,16 @@ for (let i = 0; i < COUNT; i++) {
   const region = pick(REGIONS)
   const [company, industry] = pick(EMPLOYERS)
 
-  // Deliberately leave gaps: real class cards are patchy and the UI must cope.
+  // Gap rates are matched to the real section, so the UI is exercised against
+  // the sparsity it will actually meet: 39% have no professional interests,
+  // 61% no interests, 78% no HBS activities.
   const hasPhoto = chance(0.94)
   const hasGoals = chance(0.72)
   const hasSecondRole = chance(0.45)
+  const hasProfessionalInterests = chance(0.68)
+  const hasInterests = chance(0.39)
+  const hasActivities = chance(0.22)
+  const hasLanguages = chance(0.77)
 
   const person: Person = {
     id,
@@ -202,13 +238,24 @@ for (let i = 0; i < COUNT; i++) {
     homeRegion: region,
     currentCity: chance(0.8) ? 'Boston, MA' : undefined,
     preMBA: [
-      { company, title: pick(TITLES), location: region.city, industry },
+      { company, title: pick(TITLES), location: region.city, industry, dates: 'JUL 2022 - JUN 2026' },
       ...(hasSecondRole
         ? (() => {
             const [c2, i2] = pick(EMPLOYERS)
-            return [{ company: c2, title: pick(TITLES), location: region.city, industry: i2 }]
+            return [
+              {
+                company: c2,
+                title: pick(TITLES),
+                location: region.city,
+                industry: i2,
+                dates: 'AUG 2020 - JUN 2022',
+              },
+            ]
           })()
         : []),
+    ],
+    education: [
+      { school: pick(SCHOOLS), degree: pick(DEGREES), gradDate: `${2018 + Math.floor(random() * 5)}` },
     ],
     postMBA: hasGoals
       ? {
@@ -217,8 +264,15 @@ for (let i = 0; i < COUNT; i++) {
           geographies: sample(GEOGRAPHIES, 1, 2),
         }
       : undefined,
-    interests: sample(INTERESTS, 2, 6),
-    activities: sample(ACTIVITIES, 1, 4),
+    professionalInterests: hasProfessionalInterests ? sample(PROFESSIONAL_INTERESTS, 1, 5) : [],
+    interests: hasInterests ? sample(INTERESTS, 2, 6) : [],
+    activities: hasActivities ? sample(ACTIVITIES, 1, 4) : [],
+    languages: hasLanguages
+      ? (sample(LANGUAGE_NAMES, 1, 3).map((name, i) => ({
+          name,
+          level: i === 0 ? 'native' : pick(LANGUAGE_LEVELS),
+        })) as Language[])
+      : [],
     birthday: { month: 1 + Math.floor(random() * 12), day: 1 + Math.floor(random() * 28) },
     startupExperience: chance(0.28),
     linkedin: chance(0.6) ? `https://www.linkedin.com/in/${id}-sample` : undefined,

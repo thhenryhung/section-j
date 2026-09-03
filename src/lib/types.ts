@@ -20,8 +20,24 @@ export type PriorRole = {
   company?: string
   title?: string
   location?: string
-  /** Normalised bucket, derived from company/title. See lib/taxonomy.ts. */
+  /** Free text from the card — a division, team, or role summary. Not a taxonomy. */
+  description?: string
+  /** Dates exactly as the card prints them, e.g. "JUN 2021 - JUL 2024". */
+  dates?: string
+  /** Normalised bucket, inferred from company and title. See `inferIndustry`. */
   industry?: string
+}
+
+export type Education = {
+  school?: string
+  degree?: string
+  gradDate?: string
+}
+
+/** A language and how well it is spoken, e.g. { name: "Spanish", level: "fluent" }. */
+export type Language = {
+  name: string
+  level?: string
 }
 
 export type PostMBAGoals = {
@@ -63,9 +79,19 @@ export type Person = {
   /** Most recent first. */
   preMBA: PriorRole[]
   postMBA?: PostMBAGoals
+  education: Education[]
 
+  /**
+   * Class cards carry both "Interests" and "Professional Interests", and they are
+   * populated very differently — in Section J, 35 of 90 filled in interests but
+   * 61 filled in professional interests. Both are kept separate rather than
+   * merged, because the directory's facets need to lead with whichever field
+   * actually has data.
+   */
   interests: string[]
+  professionalInterests: string[]
   activities: string[]
+  languages: Language[]
 
   birthday?: Birthday
   startupExperience?: boolean

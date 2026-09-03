@@ -2,7 +2,14 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { PersonPhoto } from './PersonPhoto'
 import { useSectionData } from '../gate/SectionData'
-import { currentRoleLabel, regionLabel, similarPeople, telHref, whatsappHref } from '../lib/people'
+import {
+  currentRoleLabel,
+  languageLabel,
+  regionLabel,
+  similarPeople,
+  telHref,
+  whatsappHref,
+} from '../lib/people'
 import type { Person } from '../lib/types'
 
 const MONTHS = [
@@ -143,18 +150,49 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
 
           {person.preMBA.length > 0 && (
             <Section title="Before HBS">
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-2.5">
                 {person.preMBA.map((role, i) => (
                   <li key={i} className="text-sm">
-                    <span className="font-medium">{role.title ?? 'Role'}</span>
-                    {role.company && <span className="text-ink-500"> · {role.company}</span>}
-                    {role.location && <span className="block text-xs text-ink-400">{role.location}</span>}
+                    <span className="font-medium">{role.company ?? role.title}</span>
+                    {role.company && role.title && (
+                      <span className="block text-ink-500">{role.title}</span>
+                    )}
+                    <span className="block text-xs text-ink-400">
+                      {[role.location, role.dates].filter(Boolean).join(' · ')}
+                    </span>
                   </li>
                 ))}
               </ul>
               {person.startupExperience && (
                 <p className="mt-2 text-xs text-crimson-600">Has start-up experience</p>
               )}
+            </Section>
+          )}
+
+          {person.education.length > 0 && (
+            <Section title="Education">
+              <ul className="flex flex-col gap-2">
+                {person.education.map((entry, i) => (
+                  <li key={i} className="text-sm">
+                    <span className="font-medium">{entry.school}</span>
+                    <span className="block text-xs text-ink-400">
+                      {[entry.degree, entry.gradDate].filter(Boolean).join(' · ')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+
+          {person.professionalInterests.length > 0 && (
+            <Section title="Professional interests">
+              <Chips items={person.professionalInterests} />
+            </Section>
+          )}
+
+          {person.languages.length > 0 && (
+            <Section title="Languages">
+              <Chips items={person.languages.map(languageLabel)} />
             </Section>
           )}
 
