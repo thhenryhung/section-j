@@ -55,7 +55,7 @@ export function App() {
             onClick={lock}
             className="whitespace-nowrap text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
           >
-            Lock
+            Logout
           </button>
         </div>
       </header>

@@ -53,7 +53,7 @@ export function CalendarPage() {
     const now = fromISODate(today)
     return { year: now.getUTCFullYear(), month: now.getUTCMonth() + 1 }
   })
-  const [view, setView] = useState<'month' | 'agenda'>('month')
+  const [view, setView] = useState<'calendar' | 'timetable'>('calendar')
   const [hidden, setHidden] = useState<Set<EventCategory>>(new Set())
 
   /**
@@ -140,7 +140,7 @@ export function CalendarPage() {
         </div>
 
         <div className="flex rounded-lg border border-ink-300 dark:border-ink-700">
-          {(['month', 'agenda'] as const).map((mode) => (
+          {(['calendar', 'timetable'] as const).map((mode) => (
             <button
               key={mode}
               onClick={() => setView(mode)}
@@ -183,7 +183,7 @@ export function CalendarPage() {
         })}
       </div>
 
-      {view === 'month' ? (
+      {view === 'calendar' ? (
         <div className="card overflow-hidden">
           <div className="grid grid-cols-7 border-b border-ink-200 dark:border-ink-800">
             {DAY_NAMES.map((day) => (
