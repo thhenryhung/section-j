@@ -6,8 +6,8 @@ import type { Person } from '../lib/types'
  * A person's photo, or a generated initials tile when they have none — either
  * because the class card had no photo or because they opted out.
  *
- * `hidden` forces the fallback regardless, which is how the Know Everyone quiz
- * shows a name-to-face question without giving the answer away.
+ * `hidden` forces the fallback regardless, which is how the Juiz (Know Everyone)
+ * quiz shows a name-to-face question without giving the answer away.
  */
 export function PersonPhoto({
   person,

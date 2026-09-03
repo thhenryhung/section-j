@@ -55,7 +55,7 @@ export function SocialPage() {
 
         {me && (
           <div className="text-right">
-            <p className="font-serif text-3xl text-crimson-600">
+            <p className="font-serif text-3xl text-green-700 dark:text-green-400">
               {metCount}
               <span className="text-lg text-ink-400">/{people.length - 1}</span>
             </p>
@@ -76,7 +76,7 @@ export function SocialPage() {
           </p>
           <button
             onClick={() => setShowAdmin(true)}
-            className="mt-4 rounded-lg bg-crimson-600 px-4 py-2 text-sm text-white hover:bg-crimson-700"
+            className="mt-4 rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
           >
             Generate the first round
           </button>
@@ -96,7 +96,7 @@ export function SocialPage() {
                 <li key={id}>
                   <Link
                     to={`/directory/${id}`}
-                    className="flex items-center gap-2 rounded-full border border-ink-200 py-1 pl-1 pr-3 text-sm hover:border-crimson-400 dark:border-ink-800"
+                    className="flex items-center gap-2 rounded-full border border-ink-200 py-1 pl-1 pr-3 text-sm hover:border-green-400 dark:border-ink-800"
                   >
                     <PersonPhoto person={person} className="size-7 rounded-full text-[10px]" />
                     {person.firstName}
@@ -112,7 +112,7 @@ export function SocialPage() {
       <div>
         <button
           onClick={() => setShowAdmin((v) => !v)}
-          className="text-xs text-ink-400 underline underline-offset-2 hover:text-crimson-600"
+          className="text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
         >
           {showAdmin ? 'Hide' : 'Show'} round generator
         </button>
@@ -136,8 +136,8 @@ function RoundView({ round, me }: { round: MeetupRound; me: string }) {
       </div>
 
       {mine && (
-        <div className="card mb-3 border-crimson-400 p-4">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-crimson-600">
+        <div className="card mb-3 border-green-400 p-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-green-700 dark:text-green-400">
             You’re in {mine.label}
           </p>
           <ul className="flex flex-wrap gap-3">
@@ -175,7 +175,7 @@ function RoundView({ round, me }: { round: MeetupRound; me: string }) {
               <p className="mb-1 text-xs font-semibold text-ink-400">{group.label}</p>
               <ul className="text-sm">
                 {group.memberIds.map((id) => (
-                  <li key={id} className={id === me ? 'font-semibold text-crimson-600' : ''}>
+                  <li key={id} className={id === me ? 'font-semibold text-green-700 dark:text-green-400' : ''}>
                     {byId.get(id)?.displayName ?? id}
                   </li>
                 ))}
@@ -323,7 +323,7 @@ function AdminPanel({
         <button
           onClick={generate}
           disabled={busy}
-          className="rounded-lg bg-crimson-600 px-4 py-2 text-sm text-white hover:bg-crimson-700 disabled:opacity-50"
+          className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
         >
           {busy ? 'Allocating…' : 'Generate round'}
         </button>

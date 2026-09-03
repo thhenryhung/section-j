@@ -22,17 +22,23 @@ import rawCourses from '../../data/courses.json'
 const events = rawEvents as SectionEvent[]
 const courses = rawCourses as Course[]
 
+/**
+ * "section" gets the section's own green — deliberately not "emerald", which
+ * would sit too close to it and blur two different categories into one color
+ * at calendar-dot size. "social" moved to rose to keep all five categories
+ * unambiguous at a glance.
+ */
 const CATEGORY_STYLE: Record<EventCategory, string> = {
-  section: 'bg-crimson-600 text-white',
-  social: 'bg-emerald-600 text-white',
+  section: 'bg-green-600 text-white',
+  social: 'bg-rose-500 text-white',
   course: 'bg-sky-700 text-white',
   deadline: 'bg-amber-600 text-white',
   birthday: 'bg-purple-600 text-white',
 }
 
 const CATEGORY_DOT: Record<EventCategory, string> = {
-  section: 'bg-crimson-600',
-  social: 'bg-emerald-600',
+  section: 'bg-green-600',
+  social: 'bg-rose-500',
   course: 'bg-sky-700',
   deadline: 'bg-amber-600',
   birthday: 'bg-purple-600',
@@ -142,7 +148,7 @@ export function CalendarPage() {
               onClick={() => setView(mode)}
               aria-pressed={view === mode}
               className={`px-3 py-1.5 text-sm capitalize first:rounded-l-lg last:rounded-r-lg ${
-                view === mode ? 'bg-crimson-600 text-white' : 'text-ink-500'
+                view === mode ? 'bg-green-600 text-white' : 'text-ink-500'
               }`}
             >
               {mode}
@@ -204,7 +210,7 @@ export function CalendarPage() {
                 >
                   <div
                     className={`mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs ${
-                      isToday ? 'bg-crimson-600 font-semibold text-white' : 'text-ink-400'
+                      isToday ? 'bg-green-600 font-semibold text-white' : 'text-ink-400'
                     }`}
                   >
                     {fromISODate(date).getUTCDate()}
@@ -282,14 +288,14 @@ function EntryTitle({ entry }: { entry: CalendarEntry }) {
   )
   if (entry.personId) {
     return (
-      <Link to={`/directory/${entry.personId}`} className="text-sm hover:text-crimson-600">
+      <Link to={`/directory/${entry.personId}`} className="text-sm hover:text-green-700 dark:hover:text-green-400">
         {content}
       </Link>
     )
   }
   if (entry.url) {
     return (
-      <a href={entry.url} target="_blank" rel="noreferrer" className="text-sm hover:text-crimson-600">
+      <a href={entry.url} target="_blank" rel="noreferrer" className="text-sm hover:text-green-700 dark:hover:text-green-400">
         {content}
       </a>
     )

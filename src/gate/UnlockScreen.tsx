@@ -22,8 +22,10 @@ export function UnlockScreen() {
     <main className="flex min-h-dvh items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <p className="font-serif text-6xl text-crimson-600">J</p>
-          <h1 className="mt-2 font-serif text-3xl">Section J</h1>
+          <div className="mx-auto mb-3 flex size-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40">
+            <p className="font-serif text-4xl text-green-700 dark:text-green-400">J</p>
+          </div>
+          <h1 className="font-serif text-3xl">Section J</h1>
           <p className="mt-1 text-sm text-ink-500">HBS MBA Class of 2028</p>
         </div>
 
@@ -66,8 +68,8 @@ export function UnlockScreen() {
           <button
             type="submit"
             disabled={busy || !passphrase.trim()}
-            className="mt-5 w-full rounded-lg bg-crimson-600 px-4 py-2.5 font-medium text-white
-                       transition hover:bg-crimson-700 disabled:opacity-50"
+            className="mt-5 w-full rounded-lg bg-green-600 px-4 py-2.5 font-medium text-white
+                       transition hover:bg-green-700 disabled:opacity-50"
           >
             {busy ? 'Unlocking…' : 'Unlock'}
           </button>
@@ -85,7 +87,7 @@ export function UnlockScreen() {
             href="https://github.com/thhenryhung/section-j"
             target="_blank"
             rel="noreferrer"
-            className="underline underline-offset-2 hover:text-crimson-600"
+            className="underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
           >
             Contribute on GitHub
           </a>

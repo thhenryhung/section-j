@@ -3,16 +3,29 @@
 /*
  * Design tokens.
  *
- * One accent (Harvard crimson) against a warm neutral scale, and a typographic
- * pairing of a serif for names and headings with the system UI stack for
- * everything else — it should read like a printed section facebook, not a SaaS
- * dashboard.
+ * Section J's own green carries the brand (nav, links, buttons, the unlock
+ * screen's "J") against a warm neutral scale, with a typographic pairing of a
+ * serif for names and headings and the system UI stack for everything else —
+ * it should read like a printed section facebook, not a SaaS dashboard.
+ *
+ * Crimson survives as a semantic-only leftover from HBS's own color: it never
+ * appears as brand decoration anymore, only for genuine error states (a wrong
+ * passphrase, a wrong quiz answer) where red's meaning is universal and
+ * shouldn't be the same green as everything correct on the page.
  */
 @theme {
   --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     sans-serif;
+
+  --color-green-50: #f0f7f3;
+  --color-green-100: #dbeade;
+  --color-green-200: #b7d9c4;
+  --color-green-400: #5a9c78;
+  --color-green-600: #1f6f45;
+  --color-green-700: #18583a;
+  --color-green-900: #0c3220;
 
   --color-crimson-50: #fdf3f4;
   --color-crimson-100: #fbe3e6;
@@ -56,11 +69,11 @@
 
   /* Keyboard focus should always be obvious — this is a site people tab through. */
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-crimson-600;
+    @apply outline-2 outline-offset-2 outline-green-600;
   }
 
   ::selection {
-    @apply bg-crimson-200 text-crimson-900;
+    @apply bg-green-200 text-green-900;
   }
 }
 

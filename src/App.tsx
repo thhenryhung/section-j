@@ -7,10 +7,10 @@ import { SocialPage } from './pages/SocialPage'
 import { KnowEveryonePage } from './pages/KnowEveryonePage'
 
 const TABS = [
-  { to: '/directory', label: 'Directory' },
-  { to: '/social', label: 'Social' },
-  { to: '/know-everyone', label: 'Know Everyone' },
-  { to: '/calendar', label: 'Calendar' },
+  { to: '/directory', label: 'Jirectory' },
+  { to: '/calendar', label: 'Jalendar' },
+  { to: '/social', label: 'Jocial' },
+  { to: '/know-everyone', label: 'Juiz' },
 ]
 
 export function App() {
@@ -27,8 +27,9 @@ export function App() {
       )}
 
       <header className="sticky top-0 z-20 border-b border-ink-200 bg-ink-50/85 backdrop-blur dark:border-ink-800 dark:bg-ink-950/85">
+        <div className="h-[3px] bg-gradient-to-r from-green-600 via-green-400 to-green-600" />
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-          <NavLink to="/directory" className="font-serif text-xl text-crimson-600">
+          <NavLink to="/directory" className="font-serif text-xl text-green-700 dark:text-green-400">
             Section J
           </NavLink>
 
@@ -40,7 +41,7 @@ export function App() {
                 className={({ isActive }) =>
                   `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition ${
                     isActive
-                      ? 'bg-crimson-600 text-white'
+                      ? 'bg-green-600 text-white'
                       : 'text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800'
                   }`
                 }
@@ -52,7 +53,7 @@ export function App() {
 
           <button
             onClick={lock}
-            className="whitespace-nowrap text-xs text-ink-400 underline underline-offset-2 hover:text-crimson-600"
+            className="whitespace-nowrap text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
           >
             Lock
           </button>
@@ -64,9 +65,9 @@ export function App() {
           <Route path="/" element={<Navigate to="/directory" replace />} />
           <Route path="/directory" element={<DirectoryPage />} />
           <Route path="/directory/:personId" element={<DirectoryPage />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/social" element={<SocialPage />} />
           <Route path="/know-everyone" element={<KnowEveryonePage />} />
-          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="*" element={<Navigate to="/directory" replace />} />
         </Routes>
       </main>

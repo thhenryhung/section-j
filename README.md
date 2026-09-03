@@ -11,10 +11,10 @@ Built by the section, for the section. Pull requests welcome — see
 
 | Tab | What it does |
 |---|---|
-| **Directory** | Everyone's photo, contact details, home region, pre-MBA background and post-MBA goals. Fuzzy search across all of it, faceted filters, and a "people like them" panel that surfaces classmates with overlapping interests. |
-| **Social** | Dinners of six every three weeks, 1:1 coffee chats on the weeks between. Allocation minimises repeat encounters, so you keep meeting new people. Shows your group, and how many of the section you have met. |
-| **Know Everyone** | Photo-to-name and name-to-photo drills with spaced repetition, so it keeps testing the faces you actually get wrong. |
-| **Calendar** | Section events, class times and birthdays in one month grid, with an `.ics` export you can subscribe to. |
+| **Jirectory** | Everyone's photo, contact details, home region, pre-MBA background and post-MBA goals. Fuzzy search across all of it, faceted filters, a table/card view toggle, and a "people like them" panel that surfaces classmates with overlapping interests. |
+| **Jalendar** | Section events, class times and birthdays in one month grid, with an `.ics` export you can subscribe to. |
+| **Jocial** | Dinners of six every three weeks, 1:1 coffee chats on the weeks between. Allocation minimises repeat encounters, so you keep meeting new people. Shows your group, and how many of the section you have met. |
+| **Juiz** | Photo-to-name and name-to-photo drills with spaced repetition, so it keeps testing the faces you actually get wrong. |
 
 ## No personal data lives in this repository
 

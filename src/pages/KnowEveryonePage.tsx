@@ -218,7 +218,7 @@ export function KnowEveryonePage() {
               }}
               aria-pressed={mode === value}
               className={`px-3 py-1.5 text-sm first:rounded-l-lg last:rounded-r-lg ${
-                mode === value ? 'bg-crimson-600 text-white' : 'text-ink-500'
+                mode === value ? 'bg-green-600 text-white' : 'text-ink-500'
               }`}
             >
               {label}
@@ -227,14 +227,14 @@ export function KnowEveryonePage() {
         </div>
 
         <p className="text-sm text-ink-500">
-          <span className="font-serif text-2xl text-crimson-600">{learned}</span>
+          <span className="font-serif text-2xl text-green-700 dark:text-green-400">{learned}</span>
           <span className="text-ink-400">/{withPhotos} learned</span>
         </p>
       </div>
 
       {finished ? (
         <div className="card p-8 text-center">
-          <p className="font-serif text-4xl text-crimson-600">
+          <p className="font-serif text-4xl text-green-700 dark:text-green-400">
             {score}/{questions.length}
           </p>
           <p className="mt-2 text-sm text-ink-500">
@@ -244,7 +244,7 @@ export function KnowEveryonePage() {
           </p>
           <button
             onClick={restart}
-            className="mt-5 rounded-lg bg-crimson-600 px-5 py-2.5 text-sm text-white hover:bg-crimson-700"
+            className="mt-5 rounded-lg bg-green-600 px-5 py-2.5 text-sm text-white hover:bg-green-700"
           >
             Another round
           </button>
@@ -329,14 +329,14 @@ export function KnowEveryonePage() {
               <div className="flex items-center justify-between gap-3 border-t border-ink-200 px-4 py-3 dark:border-ink-800">
                 <Link
                   to={`/directory/${question.answer.id}`}
-                  className="text-sm text-ink-500 underline underline-offset-2 hover:text-crimson-600"
+                  className="text-sm text-ink-500 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
                 >
                   See {question.answer.firstName}’s profile
                 </Link>
                 <button
                   onClick={next}
                   autoFocus
-                  className="rounded-lg bg-crimson-600 px-4 py-2 text-sm text-white hover:bg-crimson-700"
+                  className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
                 >
                   Next
                 </button>
@@ -354,7 +354,7 @@ export function KnowEveryonePage() {
               <li key={person.id}>
                 <Link
                   to={`/directory/${person.id}`}
-                  className="flex items-center gap-2 rounded-full border border-ink-200 py-1 pl-1 pr-3 text-sm hover:border-crimson-400 dark:border-ink-800"
+                  className="flex items-center gap-2 rounded-full border border-ink-200 py-1 pl-1 pr-3 text-sm hover:border-green-400 dark:border-ink-800"
                 >
                   <PersonPhoto person={person} className="size-7 rounded-full text-[10px]" />
                   {person.displayName}
@@ -381,7 +381,7 @@ function ChoiceButton({
   onClick: () => void
 }) {
   const styles = {
-    idle: 'border-ink-300 hover:border-crimson-400 dark:border-ink-700',
+    idle: 'border-ink-300 hover:border-green-400 dark:border-ink-700',
     correct: 'border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
     wrong: 'border-crimson-600 bg-crimson-50 text-crimson-900 dark:bg-crimson-900 dark:text-crimson-100',
   }[state]

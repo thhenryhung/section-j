@@ -24,7 +24,7 @@ export function DirectoryPage() {
 
   const [query, setQuery] = useState('')
   const [selection, setSelection] = useState<FacetSelection>({})
-  const [layout, setLayout] = useState<'grid' | 'list'>('grid')
+  const [layout, setLayout] = useState<'table' | 'card'>('table')
   const [expanded, setExpanded] = useState<Set<FacetKey>>(new Set())
 
   const facets = useMemo(() => collectFacets(people), [people])
@@ -101,13 +101,13 @@ export function DirectoryPage() {
             {results.length} of {people.length}
           </p>
           <div className="flex rounded-lg border border-ink-300 dark:border-ink-700">
-            {(['grid', 'list'] as const).map((mode) => (
+            {(['table', 'card'] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setLayout(mode)}
                 aria-pressed={layout === mode}
                 className={`px-3 py-1.5 text-sm capitalize first:rounded-l-lg last:rounded-r-lg ${
-                  layout === mode ? 'bg-crimson-600 text-white' : 'text-ink-500'
+                  layout === mode ? 'bg-green-600 text-white' : 'text-ink-500'
                 }`}
               >
                 {mode}
@@ -139,7 +139,7 @@ export function DirectoryPage() {
                     aria-pressed={on}
                     className={`rounded-full px-2.5 py-1 text-xs transition ${
                       on
-                        ? 'bg-crimson-600 text-white'
+                        ? 'bg-green-600 text-white'
                         : 'bg-ink-100 text-ink-600 hover:bg-ink-200 dark:bg-ink-800 dark:text-ink-300 dark:hover:bg-ink-700'
                     }`}
                   >
@@ -157,7 +157,7 @@ export function DirectoryPage() {
                       return next
                     })
                   }
-                  className="text-xs text-crimson-600 underline underline-offset-2"
+                  className="text-xs text-green-700 underline underline-offset-2 dark:text-green-400"
                 >
                   {isExpanded ? 'fewer' : `+${values.length - CHIP_LIMIT} more`}
                 </button>
@@ -169,7 +169,7 @@ export function DirectoryPage() {
         {activeCount > 0 && (
           <button
             onClick={() => setSelection({})}
-            className="self-start text-xs text-ink-400 underline underline-offset-2 hover:text-crimson-600"
+            className="self-start text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
           >
             Clear {activeCount} filter{activeCount === 1 ? '' : 's'}
           </button>
@@ -180,7 +180,7 @@ export function DirectoryPage() {
         <p className="py-16 text-center text-sm text-ink-400">
           Nobody matches that. Try a broader search or clear some filters.
         </p>
-      ) : layout === 'grid' ? (
+      ) : layout === 'card' ? (
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {results.map((person) => (
             <li key={person.id} className="contents">

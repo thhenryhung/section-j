@@ -10,12 +10,12 @@ export function PersonCard({ person }: { person: Person }) {
   return (
     <Link
       to={`/directory/${person.id}`}
-      className="card group flex flex-col overflow-hidden transition hover:border-crimson-400 hover:shadow-md"
+      className="card group flex flex-col overflow-hidden transition hover:border-green-400 hover:shadow-md"
     >
       <PersonPhoto person={person} className="aspect-square w-full text-4xl" />
 
       <div className="flex flex-1 flex-col gap-1 p-3">
-        <p className="font-serif text-base leading-tight group-hover:text-crimson-600">
+        <p className="font-serif text-base leading-tight group-hover:text-green-700 dark:group-hover:text-green-400">
           {person.displayName}
         </p>
         {role && <p className="line-clamp-2 text-xs text-ink-500">{role}</p>}

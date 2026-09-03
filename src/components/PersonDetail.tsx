@@ -94,7 +94,7 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
           <div className="flex flex-wrap gap-2">
             <a
               href={`mailto:${person.email}`}
-              className="rounded-lg bg-crimson-600 px-3 py-1.5 text-sm text-white hover:bg-crimson-700"
+              className="rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
             >
               Email
             </a>
@@ -147,7 +147,7 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
                 ))}
               </ul>
               {person.startupExperience && (
-                <p className="mt-2 text-xs text-crimson-600">Has start-up experience</p>
+                <p className="mt-2 text-xs text-green-700 dark:text-green-400">Has start-up experience</p>
               )}
             </Section>
           )}
