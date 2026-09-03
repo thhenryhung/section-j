@@ -28,8 +28,13 @@ const photosDir = path.join(privateDir, 'photos')
 const rosterPath = path.join(privateDir, 'roster.json')
 const outPath = path.join(privateDir, 'photos.json')
 
-const SIZE = 400
-const QUALITY = 78
+/**
+ * Class-card photos are served at 150×177, so this is a ceiling, not a target:
+ * `withoutEnlargement` stops a 150px portrait being upscaled into mush. If HBS
+ * ever serves larger originals, raise this and the pipeline will use them.
+ */
+const MAX_SIZE = 300
+const QUALITY = 82
 const BLUR_SIZE = 16
 
 if (!existsSync(photosDir)) {
@@ -69,7 +74,11 @@ for (const file of files) {
   // `attention` crops toward the most visually salient region, which on a
   // head-and-shoulders portrait is reliably the face.
   const square = await sharp(input)
-    .resize(SIZE, SIZE, { fit: 'cover', position: sharp.strategy.attention })
+    .resize(MAX_SIZE, MAX_SIZE, {
+      fit: 'cover',
+      position: sharp.strategy.attention,
+      withoutEnlargement: true,
+    })
     .webp({ quality: QUALITY })
     .toBuffer()
 
