@@ -32,14 +32,26 @@ section-j-data/
   meetup-history.json      who has met whom
 ```
 
-Locally, check it out as a **sibling** of this repo — the scripts look for
+Check it out as a **sibling** of this repo — the scripts resolve
 `../section-j-data`:
 
 ```
-Projects/
-  section-j/
-  section-j-data/
+Projects/                  /workspaces/          (in a Codespace)
+  section-j/                 section-j/
+  section-j-data/            section-j-data/
 ```
+
+In a Codespace, `.devcontainer/devcontainer.json` requests read access to the data
+repo, so you are prompted to authorise it when the Codespace is created. If the
+clone is still refused — an existing Codespace created before that was added — grant
+the token access once:
+
+```bash
+gh auth refresh -h github.com -s repo
+```
+
+Contributors never need this: everything builds against the synthetic sample
+roster without the private repo present.
 
 ## 2. Choose the section passphrase
 

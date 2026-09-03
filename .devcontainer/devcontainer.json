@@ -22,6 +22,21 @@
       "settings": {
         "editor.formatOnSave": true
       }
+    },
+
+    // A Codespace's token only reaches the repo it was created from, so running
+    // the real data pipeline would otherwise fail to clone the private repo.
+    // Requesting read access here makes Codespaces prompt for authorisation
+    // instead. Contributors can decline: everything builds against the synthetic
+    // sample roster without it.
+    "codespaces": {
+      "repositories": {
+        "thhenryhung/section-j-data": {
+          "permissions": {
+            "contents": "read"
+          }
+        }
+      }
     }
   }
 
