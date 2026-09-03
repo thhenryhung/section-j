@@ -131,6 +131,26 @@ function loadSecrets(): { strings: string[]; source: string } | null {
   return { strings: [...strings].filter(Boolean), source: privateRoster }
 }
 
+/**
+ * Plain substring matching flags common words that happen to contain a real
+ * surname — "already" contains "read", "subarray" contains "barr", "CHOICES"
+ * contains "choi". Require the match not be flanked by another ASCII letter,
+ * so a real surname is still caught as a whole word (including inside a
+ * quoted example like "Alrashed, Sara") without firing on ordinary English or
+ * identifier text that merely spells it out mid-word.
+ */
+function isWholeWordMatch(haystack: string, needle: string): boolean {
+  let from = 0
+  for (;;) {
+    const idx = haystack.indexOf(needle, from)
+    if (idx === -1) return false
+    const before = haystack[idx - 1]
+    const after = haystack[idx + needle.length]
+    if (!(before && /[a-z]/.test(before)) && !(after && /[a-z]/.test(after))) return true
+    from = idx + 1
+  }
+}
+
 function scan(): Finding[] {
   const findings: Finding[] = []
   const secrets = loadSecrets()
@@ -184,7 +204,7 @@ function scan(): Finding[] {
         for (const secret of secrets.strings) {
           const hit = /^\d+$/.test(secret)
             ? secret.length >= 7 && digits.includes(secret)
-            : haystack.includes(secret)
+            : isWholeWordMatch(haystack, secret)
           if (hit) {
             findings.push({
               file,

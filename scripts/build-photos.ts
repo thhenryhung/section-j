@@ -52,7 +52,7 @@ if (existsSync(rosterPath)) {
 }
 
 const files = readdirSync(photosDir).filter((file) =>
-  /\.(jpe?g|png|webp)$/i.test(file),
+  /\.(jpe?g|png|webp|gif)$/i.test(file),
 )
 
 const photos: Record<string, string> = {}

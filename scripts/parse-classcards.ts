@@ -314,7 +314,7 @@ function toFirstLast(raw: string | undefined): string {
 
 /**
  * Order-insensitive name key: tokens lowercased, stripped of punctuation, sorted.
- * "Alrashed, Sara", "Sara Alrashed" and "sara  alrashed" all collapse to the same
+ * "Patel, Rina", "Rina Patel" and "rina patel" all collapse to the same
  * value.
  *
  * Sorting the tokens is the whole point. The results table prints "Last, First"
