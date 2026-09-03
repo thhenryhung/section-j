@@ -24,11 +24,24 @@
     "location": "Tables assigned on the Social tab"
   },
   {
-    "id": "section-retreat",
-    "title": "Section J retreat",
+    "id": "section-retreat-day1",
+    "title": "Section J retreat (Day 1 of 3)",
     "category": "section",
-    "date": "2026-09-26",
-    "location": "TBC",
-    "description": "Placeholder — replace with the real date and venue via a pull request."
+    "date": "2026-10-10",
+    "location": "TBC"
+  },
+  {
+    "id": "section-retreat-day2",
+    "title": "Section J retreat (Day 2 of 3)",
+    "category": "section",
+    "date": "2026-10-11",
+    "location": "TBC"
+  },
+  {
+    "id": "section-retreat-day3",
+    "title": "Section J retreat (Day 3 of 3)",
+    "category": "section",
+    "date": "2026-10-12",
+    "location": "TBC"
   }
 ]

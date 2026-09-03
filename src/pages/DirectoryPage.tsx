@@ -14,9 +14,6 @@ import {
 } from '../lib/people'
 import type { Person } from '../lib/types'
 
-/** How many chips to show per facet before "show all". */
-const CHIP_LIMIT = 8
-
 export function DirectoryPage() {
   const { people } = useSectionData()
   const { personId } = useParams()
@@ -25,7 +22,6 @@ export function DirectoryPage() {
   const [query, setQuery] = useState('')
   const [selection, setSelection] = useState<FacetSelection>({})
   const [layout, setLayout] = useState<'table' | 'card'>('table')
-  const [expanded, setExpanded] = useState<Set<FacetKey>>(new Set())
 
   const facets = useMemo(() => collectFacets(people), [people])
 
@@ -117,59 +113,58 @@ export function DirectoryPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">
+      {/*
+       * One dropdown per facet rather than a wall of chips — a filter with, say,
+       * thirty industry values used to print thirty buttons across the page
+       * before you could even see a person. `<details>` needs no extra JS state
+       * for open/closed and degrades to a plain expandable list if styling ever
+       * fails to load.
+       */}
+      <div className="flex flex-wrap items-center gap-2">
         {FACET_ORDER.map((key) => {
           const values = facets[key]
           if (values.length === 0) return null
-          const isExpanded = expanded.has(key)
-          const shown = isExpanded ? values : values.slice(0, CHIP_LIMIT)
           const active = selection[key] ?? []
 
           return (
-            <div key={key} className="flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
-              <span className="w-32 shrink-0 text-xs font-semibold uppercase tracking-wide text-ink-400">
+            <details key={key} className="group relative">
+              <summary
+                className={`flex cursor-pointer list-none items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition [&::-webkit-details-marker]:hidden ${
+                  active.length > 0
+                    ? 'border-green-600 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-200'
+                    : 'border-ink-300 text-ink-600 hover:bg-ink-100 dark:border-ink-700 dark:text-ink-300 dark:hover:bg-ink-800'
+                }`}
+              >
                 {FACET_LABELS[key]}
-              </span>
-              {shown.map(({ value, count }) => {
-                const on = active.includes(value)
-                return (
-                  <button
+                {active.length > 0 && ` (${active.length})`}
+                <span className="text-[10px] transition group-open:rotate-180">▾</span>
+              </summary>
+
+              <div className="absolute left-0 z-20 mt-1 max-h-72 w-64 max-w-[90vw] overflow-y-auto rounded-lg border border-ink-200 bg-white p-1.5 shadow-lg dark:border-ink-800 dark:bg-ink-900">
+                {values.map(({ value, count }) => (
+                  <label
                     key={value}
-                    onClick={() => toggleFacet(key, value)}
-                    aria-pressed={on}
-                    className={`rounded-full px-2.5 py-1 text-xs transition ${
-                      on
-                        ? 'bg-green-600 text-white'
-                        : 'bg-ink-100 text-ink-600 hover:bg-ink-200 dark:bg-ink-800 dark:text-ink-300 dark:hover:bg-ink-700'
-                    }`}
+                    className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-ink-100 dark:hover:bg-ink-800"
                   >
-                    {value} <span className="opacity-60">{count}</span>
-                  </button>
-                )
-              })}
-              {values.length > CHIP_LIMIT && (
-                <button
-                  onClick={() =>
-                    setExpanded((prev) => {
-                      const next = new Set(prev)
-                      if (next.has(key)) next.delete(key)
-                      else next.add(key)
-                      return next
-                    })
-                  }
-                  className="text-xs text-green-700 underline underline-offset-2 dark:text-green-400"
-                >
-                  {isExpanded ? 'fewer' : `+${values.length - CHIP_LIMIT} more`}
-                </button>
-              )}
-            </div>
+                    <input
+                      type="checkbox"
+                      checked={active.includes(value)}
+                      onChange={() => toggleFacet(key, value)}
+                      className="accent-green-600"
+                    />
+                    <span className="min-w-0 flex-1 truncate">{value}</span>
+                    <span className="shrink-0 text-xs text-ink-400">{count}</span>
+                  </label>
+                ))}
+              </div>
+            </details>
           )
         })}
 
         {activeCount > 0 && (
           <button
             onClick={() => setSelection({})}
-            className="self-start text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
+            className="text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
           >
             Clear {activeCount} filter{activeCount === 1 ? '' : 's'}
           </button>
@@ -189,13 +184,27 @@ export function DirectoryPage() {
           ))}
         </ul>
       ) : (
-        <ul className="card overflow-hidden px-2">
-          {results.map((person) => (
-            <li key={person.id}>
-              <PersonRow person={person} />
-            </li>
-          ))}
-        </ul>
+        <div className="card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-ink-200 text-xs uppercase tracking-wide text-ink-400 dark:border-ink-800">
+                  <th className="px-2 py-2 font-semibold">Name</th>
+                  <th className="hidden px-2 py-2 font-semibold sm:table-cell">Industry</th>
+                  <th className="hidden px-2 py-2 font-semibold md:table-cell">Home region</th>
+                  <th className="hidden px-2 py-2 font-semibold lg:table-cell">
+                    Professional interests
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((person) => (
+                  <PersonRow key={person.id} person={person} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {selected && <PersonDetail person={selected} onClose={() => navigate('/directory')} />}

@@ -2,16 +2,15 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSectionData } from '../gate/SectionData'
 import { PersonPhoto } from '../components/PersonPhoto'
-import { allocate, metWith } from '../lib/pairing'
+import { metWith } from '../lib/pairing'
 import { formatLongDate } from '../lib/calendar'
-import type { MeetupHistory, MeetupKind, MeetupRound } from '../lib/types'
+import type { MeetupRound } from '../lib/types'
 
 const ME_KEY = 'section-j.me'
 
 export function SocialPage() {
-  const { people, byId, meetups, setMeetups } = useSectionData()
+  const { people, byId, meetups } = useSectionData()
   const [me, setMe] = useState<string>(() => localStorage.getItem(ME_KEY) ?? '')
-  const [showAdmin, setShowAdmin] = useState(false)
 
   const rounds = useMemo(
     () => [...meetups.rounds].sort((a, b) => b.date.localeCompare(a.date)),
@@ -70,16 +69,10 @@ export function SocialPage() {
         <div className="card p-8 text-center">
           <p className="font-serif text-xl">No rounds yet</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-ink-500">
-            Dinners of six run every three weeks, with 1:1 coffee chats on the weeks between.
-            Once the first round is generated it will appear here, along with everyone you have
-            already met.
+            Dinners of six run every three weeks, with 1:1 coffee chats on the weeks between. The
+            section posts each round on schedule — check back soon, or ask your organiser when
+            the next one lands.
           </p>
-          <button
-            onClick={() => setShowAdmin(true)}
-            className="mt-4 rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
-          >
-            Generate the first round
-          </button>
         </div>
       ) : (
         rounds.map((round) => <RoundView key={round.id} round={round} me={me} />)
@@ -108,16 +101,6 @@ export function SocialPage() {
           </ul>
         </section>
       )}
-
-      <div>
-        <button
-          onClick={() => setShowAdmin((v) => !v)}
-          className="text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
-        >
-          {showAdmin ? 'Hide' : 'Show'} round generator
-        </button>
-        {showAdmin && <AdminPanel history={meetups} onGenerated={setMeetups} />}
-      </div>
     </div>
   )
 }
@@ -188,161 +171,3 @@ function RoundView({ round, me }: { round: MeetupRound; me: string }) {
   )
 }
 
-/**
- * The generator runs entirely in the browser, then hands back a JSON file.
- *
- * It deliberately does not write anywhere: the organiser downloads the updated
- * history, eyeballs it, and commits it to the private repo. That keeps a
- * reviewable record of every round and makes a bad allocation trivial to undo.
- */
-function AdminPanel({
-  history,
-  onGenerated,
-}: {
-  history: MeetupHistory
-  onGenerated: (next: MeetupHistory) => void
-}) {
-  const { people } = useSectionData()
-  const [kind, setKind] = useState<MeetupKind>('dinner')
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
-  const [groupSize, setGroupSize] = useState(6)
-  const [absent, setAbsent] = useState<string[]>([])
-  const [result, setResult] = useState<{ history: MeetupHistory; stats: string } | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  function generate() {
-    setBusy(true)
-    // Yield a frame so the button can show its busy state before the search runs.
-    setTimeout(() => {
-      const outcome = allocate({
-        kind,
-        people,
-        history,
-        absentIds: absent,
-        groupSize,
-        seed: Date.now() & 0xffff,
-      })
-
-      const round: MeetupRound = {
-        id: `${kind}-${date}`,
-        kind,
-        date,
-        groups: outcome.groups,
-        absentIds: absent,
-        generatedAt: new Date().toISOString(),
-      }
-
-      const next: MeetupHistory = {
-        version: 1,
-        rounds: [...history.rounds.filter((r) => r.id !== round.id), round],
-      }
-
-      setResult({
-        history: next,
-        stats: `${outcome.groups.length} groups · ${outcome.firstTimeMeetings} first-time pairings · worst repeat: ${outcome.maxRepeat}`,
-      })
-      onGenerated(next)
-      setBusy(false)
-    }, 0)
-  }
-
-  function download() {
-    if (!result) return
-    const blob = new Blob([JSON.stringify(result.history, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = 'meetup-history.json'
-    anchor.click()
-    URL.revokeObjectURL(url)
-  }
-
-  return (
-    <div className="card mt-3 flex flex-col gap-4 p-4">
-      <div className="flex flex-wrap gap-4">
-        <label className="text-sm">
-          <span className="block text-xs text-ink-400">Kind</span>
-          <select
-            value={kind}
-            onChange={(e) => setKind(e.target.value as MeetupKind)}
-            className="mt-1 rounded-lg border border-ink-300 bg-white px-2 py-1.5 dark:border-ink-700 dark:bg-ink-900"
-          >
-            <option value="dinner">Dinner</option>
-            <option value="onetoone">1:1</option>
-          </select>
-        </label>
-
-        <label className="text-sm">
-          <span className="block text-xs text-ink-400">Date</span>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="mt-1 rounded-lg border border-ink-300 bg-white px-2 py-1.5 dark:border-ink-700 dark:bg-ink-900"
-          />
-        </label>
-
-        {kind === 'dinner' && (
-          <label className="text-sm">
-            <span className="block text-xs text-ink-400">Group size</span>
-            <input
-              type="number"
-              min={3}
-              max={12}
-              value={groupSize}
-              onChange={(e) => setGroupSize(Number(e.target.value))}
-              className="mt-1 w-20 rounded-lg border border-ink-300 bg-white px-2 py-1.5 dark:border-ink-700 dark:bg-ink-900"
-            />
-          </label>
-        )}
-      </div>
-
-      <details>
-        <summary className="cursor-pointer text-xs text-ink-400">
-          Not attending ({absent.length})
-        </summary>
-        <div className="mt-2 grid max-h-56 grid-cols-2 gap-1 overflow-y-auto sm:grid-cols-3">
-          {people.map((person) => (
-            <label key={person.id} className="flex items-center gap-1.5 text-xs">
-              <input
-                type="checkbox"
-                checked={absent.includes(person.id)}
-                onChange={(e) =>
-                  setAbsent((prev) =>
-                    e.target.checked ? [...prev, person.id] : prev.filter((id) => id !== person.id),
-                  )
-                }
-              />
-              <span className="truncate">{person.displayName}</span>
-            </label>
-          ))}
-        </div>
-      </details>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          onClick={generate}
-          disabled={busy}
-          className="rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
-        >
-          {busy ? 'Allocating…' : 'Generate round'}
-        </button>
-        {result && (
-          <button
-            onClick={download}
-            className="rounded-lg border border-ink-300 px-4 py-2 text-sm dark:border-ink-700"
-          >
-            Download meetup-history.json
-          </button>
-        )}
-      </div>
-
-      {result && (
-        <p className="text-xs text-ink-500">
-          {result.stats}. Commit the downloaded file to the private data repo, then redeploy —
-          this preview is not saved anywhere.
-        </p>
-      )}
-    </div>
-  )
-}

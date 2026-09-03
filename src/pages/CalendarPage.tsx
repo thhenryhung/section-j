@@ -5,7 +5,6 @@ import {
   DAY_NAMES,
   MONTH_NAMES,
   birthdayEntries,
-  courseEntries,
   eventEntries,
   formatLongDate,
   fromISODate,
@@ -15,18 +14,18 @@ import {
   toICS,
   toISODate,
 } from '../lib/calendar'
-import type { CalendarEntry, Course, EventCategory, SectionEvent } from '../lib/types'
+import type { CalendarEntry, EventCategory, SectionEvent } from '../lib/types'
 import rawEvents from '../../data/events.json'
-import rawCourses from '../../data/courses.json'
 
 const events = rawEvents as SectionEvent[]
-const courses = rawCourses as Course[]
 
 /**
  * "section" gets the section's own green — deliberately not "emerald", which
  * would sit too close to it and blur two different categories into one color
- * at calendar-dot size. "social" moved to rose to keep all five categories
- * unambiguous at a glance.
+ * at calendar-dot size. "social" moved to rose to keep categories unambiguous
+ * at a glance. "course" and "deadline" stay in the type (a stray event with
+ * either category would still render, just with no toggle chip) but are
+ * dropped from the section's actual calendar — see ALL_CATEGORIES below.
  */
 const CATEGORY_STYLE: Record<EventCategory, string> = {
   section: 'bg-green-600 text-white',
@@ -44,7 +43,7 @@ const CATEGORY_DOT: Record<EventCategory, string> = {
   birthday: 'bg-purple-600',
 }
 
-const ALL_CATEGORIES: EventCategory[] = ['section', 'social', 'course', 'deadline', 'birthday']
+const ALL_CATEGORIES: EventCategory[] = ['section', 'social', 'birthday']
 
 export function CalendarPage() {
   const { people } = useSectionData()
@@ -55,7 +54,7 @@ export function CalendarPage() {
     return { year: now.getUTCFullYear(), month: now.getUTCMonth() + 1 }
   })
   const [view, setView] = useState<'month' | 'agenda'>('month')
-  const [hidden, setHidden] = useState<Set<EventCategory>>(new Set(['course']))
+  const [hidden, setHidden] = useState<Set<EventCategory>>(new Set())
 
   /**
    * Birthdays are generated for the year on screen and the next one, so scrolling
@@ -65,7 +64,6 @@ export function CalendarPage() {
     () =>
       sortEntries([
         ...eventEntries(events),
-        ...courseEntries(courses),
         ...birthdayEntries(people, cursor.year),
         ...birthdayEntries(people, cursor.year + 1),
       ]),
