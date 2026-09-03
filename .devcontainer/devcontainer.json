@@ -23,8 +23,16 @@
         "editor.formatOnSave": true
       }
     }
-  },
-  "remoteEnv": {
-    "SECTION_PASSPHRASE": "demo"
   }
+
+  // Deliberately no SECTION_PASSPHRASE here. Setting it via "remoteEnv" would
+  // shadow a real Codespaces secret of the same name, so a maintainer working on
+  // real section data would silently get the demo value instead of theirs.
+  //
+  // Contributors need nothing: scripts/encrypt-data.ts falls back to "demo" by
+  // itself whenever it is building the synthetic sample roster.
+  //
+  // To work with real data in a Codespace, add SECTION_PASSPHRASE under
+  // Settings -> Secrets and variables -> Codespaces (NOT the Actions tab, which
+  // is a separate store that only workflows can read).
 }

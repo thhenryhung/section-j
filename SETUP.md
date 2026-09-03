@@ -44,9 +44,38 @@ Projects/
 ## 2. Choose the section passphrase
 
 One shared secret for the whole section. At least 10 characters; the build refuses
-anything shorter, and refuses the string `demo` outright for real data.
+anything shorter, and refuses the string `demo` outright for real data. A few
+unrelated words work well — memorable, and easy to read out.
 
-Store it in the public repo's Actions secrets, not in any file.
+Store it in GitHub's secrets, never in a file. **It goes in two separate places,
+and they are genuinely different stores:**
+
+| Where | Tab | Who reads it |
+|---|---|---|
+| Repo settings → Secrets and variables | **Actions** | the Deploy workflow, building the real site |
+| Repo settings → Secrets and variables | **Codespaces** | your Codespace, for local work on real data |
+
+Setting only the Actions one is the usual mistake: the deploy works, but a
+Codespace still builds with the `demo` fallback, and the passphrase you type
+won't unlock it.
+
+**A Codespace only picks up a new secret on a fresh start.** After adding it,
+stop and restart the Codespace, or run *Codespaces: Rebuild Container* from the
+command palette. Then confirm:
+
+```bash
+echo ${SECTION_PASSPHRASE:+set (${#SECTION_PASSPHRASE} chars)}
+```
+
+The passphrase that unlocks a build is whatever `npm run data:encrypt` saw when
+it produced `public/data/*.enc` — so re-encrypt after changing it, and note that
+the deployed site and your local dev build are encrypted independently.
+
+For a one-off run without storing anything:
+
+```bash
+SECTION_PASSPHRASE='your words here' npm run dev
+```
 
 ## 3. Cloudflare Pages
 

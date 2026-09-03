@@ -108,7 +108,20 @@ writeFileSync(
 )
 
 const kb = (n: number) => `${(n / 1024).toFixed(0)} KB`
+
+/**
+ * Say which passphrase was used and where it came from — never the value.
+ *
+ * Without this, "why won't my passphrase unlock the site" is impossible to
+ * diagnose: the payload is encrypted with whatever this script saw, so a
+ * mismatch between the build environment and what you type is silent.
+ */
+const passphraseSource =
+  process.env.SECTION_PASSPHRASE !== undefined
+    ? 'the SECTION_PASSPHRASE environment variable'
+    : 'the built-in "demo" fallback (sample data only)'
 console.log(`Source: ${useSample ? 'SYNTHETIC SAMPLE' : 'REAL SECTION DATA'} (${path.relative(repoRoot, rosterPath)})`)
+console.log(`Passphrase: ${passphrase.length} characters, from ${passphraseSource}`)
 console.log(`✓ public/data/roster.enc   ${kb(rosterBytes.length)}  (${roster.people.length} people)`)
 console.log(`✓ public/data/photos.enc   ${kb(photoBytes.length)}  (${Object.keys(photos).length} photos)`)
 console.log(`✓ public/data/meetups.enc  ${kb(meetupBytes.length)}  (${meetups.rounds.length} rounds)`)
