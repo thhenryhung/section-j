@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { PersonPhoto } from './PersonPhoto'
 import { useSectionData } from '../gate/SectionData'
-import { currentRoleLabel, regionLabel, similarPeople, telHref, whatsappHref } from '../lib/people'
+import { currentRoleLabel, regionLabel, similarPeople } from '../lib/people'
 import type { Person } from '../lib/types'
 
 const MONTHS = [
@@ -50,8 +50,6 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
   }, [onClose])
 
   const similar = similarPeople(person, people, 6)
-  const tel = telHref(person.phone)
-  const whatsapp = whatsappHref(person.phone)
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end" role="dialog" aria-modal="true" aria-label={person.displayName}>
@@ -91,30 +89,6 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
         </div>
 
         <div className="flex flex-col gap-4 px-4 pb-8">
-          <div className="flex flex-wrap gap-2">
-            <a
-              href={`mailto:${person.email}`}
-              className="rounded-lg bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
-            >
-              Email
-            </a>
-            {tel && (
-              <a href={tel} className="rounded-lg border border-ink-300 px-3 py-1.5 text-sm dark:border-ink-700">
-                Call
-              </a>
-            )}
-            {whatsapp && (
-              <a
-                href={whatsapp}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border border-ink-300 px-3 py-1.5 text-sm dark:border-ink-700"
-              >
-                WhatsApp
-              </a>
-            )}
-          </div>
-
           <p className="text-sm text-ink-500">
             <a href={`mailto:${person.email}`} className="underline underline-offset-2">
               {person.email}
