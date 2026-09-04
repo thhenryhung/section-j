@@ -21,7 +21,7 @@ export function DirectoryPage() {
 
   const [query, setQuery] = useState('')
   const [selection, setSelection] = useState<FacetSelection>({})
-  const [layout, setLayout] = useState<'table' | 'card'>('table')
+  const [layout, setLayout] = useState<'table' | 'card'>('card')
 
   const facets = useMemo(() => collectFacets(people), [people])
 

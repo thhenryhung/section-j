@@ -103,21 +103,21 @@
     "id": "section-retreat-day1",
     "title": "Section J retreat (Day 1 of 3)",
     "category": "section",
-    "date": "2026-10-10",
+    "date": "2026-10-09",
     "location": "TBC"
   },
   {
     "id": "section-retreat-day2",
     "title": "Section J retreat (Day 2 of 3)",
     "category": "section",
-    "date": "2026-10-11",
+    "date": "2026-10-10",
     "location": "TBC"
   },
   {
     "id": "section-retreat-day3",
     "title": "Section J retreat (Day 3 of 3)",
     "category": "section",
-    "date": "2026-10-12",
+    "date": "2026-10-11",
     "location": "TBC"
   }
 ]

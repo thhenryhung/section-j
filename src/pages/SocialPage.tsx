@@ -12,8 +12,9 @@ export function SocialPage() {
   const { people, byId, meetups } = useSectionData()
   const [me, setMe] = useState<string>(() => localStorage.getItem(ME_KEY) ?? '')
 
+  // Soonest round first, so the next thing on your calendar is what you see first.
   const rounds = useMemo(
-    () => [...meetups.rounds].sort((a, b) => b.date.localeCompare(a.date)),
+    () => [...meetups.rounds].sort((a, b) => a.date.localeCompare(b.date)),
     [meetups],
   )
 

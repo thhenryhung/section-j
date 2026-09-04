@@ -10,7 +10,7 @@ const TABS = [
   { to: '/directory', label: 'Jirectory' },
   { to: '/calendar', label: 'Jalendar' },
   { to: '/social', label: 'Jocial' },
-  { to: '/know-everyone', label: 'Juiz' },
+  { to: '/know-everyone', label: 'Just for Fun' },
 ]
 
 export function App() {

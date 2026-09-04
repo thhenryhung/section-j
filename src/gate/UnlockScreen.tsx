@@ -1,9 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { useSectionData } from './SectionData'
+import sectionPhoto from '../assets/section-photo.jpg'
 
 /**
  * The gate. Deliberately plain: it explains what the site is, why it is behind a
  * passphrase, and nothing about who is inside it.
+ *
+ * The background photo is a section group shot, already public on Instagram, so
+ * it carries no privacy weight of its own — everything it would need to protect
+ * (names, contact details) still lives only behind the passphrase below it.
  */
 export function UnlockScreen() {
   const { unlock, status, error } = useSectionData()
@@ -19,14 +24,21 @@ export function UnlockScreen() {
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-12">
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${sectionPhoto})` }}
+        aria-hidden="true"
+      />
+      <div className="absolute inset-0 bg-ink-950/65" aria-hidden="true" />
+
+      <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex size-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/40">
-            <p className="font-serif text-4xl text-green-700 dark:text-green-400">J</p>
+          <div className="mx-auto mb-3 flex size-20 items-center justify-center rounded-full bg-green-100">
+            <p className="font-serif text-4xl text-green-700">J</p>
           </div>
-          <h1 className="font-serif text-3xl">Section J</h1>
-          <p className="mt-1 text-sm text-ink-500">HBS MBA Class of 2028</p>
+          <h1 className="font-serif text-3xl text-white">Section J</h1>
+          <p className="mt-1 text-sm text-ink-200">HBS MBA Class of 2028</p>
         </div>
 
         <form onSubmit={onSubmit} className="card p-6">
@@ -81,13 +93,13 @@ export function UnlockScreen() {
           )}
         </form>
 
-        <p className="mt-6 text-center text-xs text-ink-400">
+        <p className="mt-6 text-center text-xs text-ink-300">
           Built by the section, for the section.{' '}
           <a
             href="https://github.com/thhenryhung/section-j"
             target="_blank"
             rel="noreferrer"
-            className="underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
+            className="underline underline-offset-2 hover:text-white"
           >
             Contribute on GitHub
           </a>

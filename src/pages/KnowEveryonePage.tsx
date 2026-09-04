@@ -101,7 +101,7 @@ function buildQuestion(answer: Person, people: Person[], random: () => number): 
 }
 
 export function KnowEveryonePage() {
-  const { people, byId } = useSectionData()
+  const { people } = useSectionData()
   const [progress, setProgress] = useState<Progress>(loadProgress)
   const [mode, setMode] = useState<Mode>('photo-to-name')
   const [seed, setSeed] = useState(() => Date.now() & 0xffff)
@@ -177,17 +177,6 @@ export function KnowEveryonePage() {
     setScore(0)
     setStreak(0)
   }
-
-  const trouble = useMemo(
-    () =>
-      Object.entries(progress)
-        .filter(([, entry]) => entry.wrong > 0 && entry.box <= 1)
-        .sort((a, b) => b[1].wrong - a[1].wrong)
-        .slice(0, 12)
-        .map(([id, entry]) => ({ person: byId.get(id), wrong: entry.wrong }))
-        .filter((row): row is { person: Person; wrong: number } => Boolean(row.person)),
-    [progress, byId],
-  )
 
   const learned = Object.values(progress).filter((entry) => entry.box >= 3).length
   const withPhotos = people.filter((p) => p.photoId).length
@@ -344,26 +333,6 @@ export function KnowEveryonePage() {
             )}
           </div>
         )
-      )}
-
-      {trouble.length > 0 && (
-        <section>
-          <h2 className="mb-2 font-serif text-xl">People you keep missing</h2>
-          <ul className="flex flex-wrap gap-2">
-            {trouble.map(({ person, wrong }) => (
-              <li key={person.id}>
-                <Link
-                  to={`/directory/${person.id}`}
-                  className="flex items-center gap-2 rounded-full border border-ink-200 py-1 pl-1 pr-3 text-sm hover:border-green-400 dark:border-ink-800"
-                >
-                  <PersonPhoto person={person} className="size-7 rounded-full text-[10px]" />
-                  {person.displayName}
-                  <span className="text-xs text-ink-400">×{wrong}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
       )}
     </div>
   )
