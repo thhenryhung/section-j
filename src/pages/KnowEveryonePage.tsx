@@ -331,7 +331,11 @@ export function KnowEveryonePage() {
       )}
 
       {viewingProfile && (
-        <PersonDetail person={viewingProfile} onClose={() => setViewingProfile(null)} />
+        <PersonDetail
+          person={viewingProfile}
+          onClose={() => setViewingProfile(null)}
+          onNavigate={setViewingProfile}
+        />
       )}
     </div>
   )

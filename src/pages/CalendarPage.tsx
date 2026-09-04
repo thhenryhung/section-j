@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSectionData } from '../gate/SectionData'
 import {
@@ -55,6 +55,8 @@ export function CalendarPage() {
   })
   const [view, setView] = useState<'calendar' | 'timetable'>('calendar')
   const [hidden, setHidden] = useState<Set<EventCategory>>(new Set())
+  const [scrollTarget, setScrollTarget] = useState<string | null>(null)
+  const timetableRefs = useRef(new Map<string, HTMLDivElement>())
 
   /**
    * Birthdays are generated for the year on screen and the next one, so scrolling
@@ -100,6 +102,19 @@ export function CalendarPage() {
       return next
     })
   }
+
+  /** Jump from a day in the month grid to that same day in the timetable. */
+  function goToDate(date: string) {
+    setView('timetable')
+    setScrollTarget(date)
+  }
+
+  // Only fires once the timetable's own rows exist to scroll to.
+  useEffect(() => {
+    if (view !== 'timetable' || !scrollTarget) return
+    timetableRefs.current.get(scrollTarget)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setScrollTarget(null)
+  }, [view, scrollTarget])
 
   /**
    * Generated in the browser rather than published as a static file — birthdays
@@ -206,13 +221,25 @@ export function CalendarPage() {
                     inMonth ? '' : 'bg-ink-100/60 dark:bg-ink-900/40'
                   }`}
                 >
-                  <div
-                    className={`mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs ${
-                      isToday ? 'bg-green-600 font-semibold text-white' : 'text-ink-400'
-                    }`}
-                  >
-                    {fromISODate(date).getUTCDate()}
-                  </div>
+                  {entries.length > 0 ? (
+                    <button
+                      onClick={() => goToDate(date)}
+                      aria-label={`See ${formatLongDate(date)} in the timetable`}
+                      className={`mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs transition hover:ring-2 hover:ring-green-400 ${
+                        isToday ? 'bg-green-600 font-semibold text-white' : 'text-ink-400'
+                      }`}
+                    >
+                      {fromISODate(date).getUTCDate()}
+                    </button>
+                  ) : (
+                    <div
+                      className={`mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs ${
+                        isToday ? 'bg-green-600 font-semibold text-white' : 'text-ink-400'
+                      }`}
+                    >
+                      {fromISODate(date).getUTCDate()}
+                    </div>
+                  )}
 
                   <ul className="flex flex-col gap-0.5">
                     {entries.slice(0, 3).map((entry) => (
@@ -235,7 +262,14 @@ export function CalendarPage() {
             <p className="p-8 text-center text-sm text-ink-400">Nothing coming up in the visible categories.</p>
           )}
           {upcoming.map((entry) => (
-            <div key={entry.id} className="flex gap-4 p-3">
+            <div
+              key={entry.id}
+              ref={(el) => {
+                if (el) timetableRefs.current.set(entry.date, el)
+                else timetableRefs.current.delete(entry.date)
+              }}
+              className="flex gap-4 p-3 scroll-mt-20"
+            >
               <div className="w-28 shrink-0 text-xs text-ink-400">
                 {formatLongDate(entry.date)}
                 {entry.startTime && <span className="block">{entry.startTime}</span>}

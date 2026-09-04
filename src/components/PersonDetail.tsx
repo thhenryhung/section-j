@@ -34,7 +34,21 @@ function Chips({ items }: { items: string[] }) {
   )
 }
 
-export function PersonDetail({ person, onClose }: { person: Person; onClose: () => void }) {
+export function PersonDetail({
+  person,
+  onClose,
+  onNavigate,
+}: {
+  person: Person
+  onClose: () => void
+  /**
+   * Swap which person this same panel shows, instead of navigating to
+   * `/directory/:id`. Pass this whenever the panel was opened from somewhere
+   * other than Jirectory itself (Jocial, the quiz) — otherwise "People like
+   * them" would silently leave the page the user actually came from.
+   */
+  onNavigate?: (person: Person) => void
+}) {
   const { people } = useSectionData()
   const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -156,12 +170,11 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
           {similar.length > 0 && (
             <Section title="People like them">
               <ul className="flex flex-col gap-1">
-                {similar.map(({ person: other, shared }) => (
-                  <li key={other.id}>
-                    <Link
-                      to={`/directory/${other.id}`}
-                      className="flex items-center gap-2 rounded-lg px-1 py-1.5 hover:bg-ink-100 dark:hover:bg-ink-900"
-                    >
+                {similar.map(({ person: other, shared }) => {
+                  const rowClass =
+                    'flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-left hover:bg-ink-100 dark:hover:bg-ink-900'
+                  const content = (
+                    <>
                       <PersonPhoto person={other} className="size-8 shrink-0 rounded-full text-xs" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm">{other.displayName}</span>
@@ -171,9 +184,22 @@ export function PersonDetail({ person, onClose }: { person: Person; onClose: () 
                           </span>
                         )}
                       </span>
-                    </Link>
-                  </li>
-                ))}
+                    </>
+                  )
+                  return (
+                    <li key={other.id}>
+                      {onNavigate ? (
+                        <button onClick={() => onNavigate(other)} className={rowClass}>
+                          {content}
+                        </button>
+                      ) : (
+                        <Link to={`/directory/${other.id}`} className={rowClass}>
+                          {content}
+                        </Link>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </Section>
           )}

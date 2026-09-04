@@ -1,16 +1,18 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import Fuse from 'fuse.js'
 import { useSectionData } from '../gate/SectionData'
 import { PersonPhoto } from '../components/PersonPhoto'
+import { PersonDetail } from '../components/PersonDetail'
 import { metWith } from '../lib/pairing'
 import { formatLongDate } from '../lib/calendar'
-import type { MeetupRound } from '../lib/types'
+import type { MeetupRound, Person } from '../lib/types'
 
 const ME_KEY = 'section-j.me'
 
 export function SocialPage() {
   const { people, byId, meetups } = useSectionData()
   const [me, setMe] = useState<string>(() => localStorage.getItem(ME_KEY) ?? '')
+  const [viewingProfile, setViewingProfile] = useState<Person | null>(null)
 
   // Soonest round first, so the next thing on your calendar is what you see first.
   const rounds = useMemo(
@@ -45,19 +47,7 @@ export function SocialPage() {
           <p className="mb-2 text-xs text-ink-500">
             Kept in this browser only, so the page can highlight your group.
           </p>
-          <select
-            id="me"
-            value={me}
-            onChange={(e) => chooseMe(e.target.value)}
-            className="w-full max-w-xs rounded-lg border border-ink-300 bg-white px-3 py-2 dark:border-ink-700 dark:bg-ink-900"
-          >
-            <option value="">Choose your name…</option>
-            {people.map((person) => (
-              <option key={person.id} value={person.id}>
-                {person.displayName}
-              </option>
-            ))}
-          </select>
+          <NamePicker id="me" people={people} value={me} onChange={chooseMe} />
         </div>
 
         {me && (
@@ -83,37 +73,55 @@ export function SocialPage() {
           </p>
         </div>
       ) : (
-        rounds.map((round) => <RoundView key={round.id} round={round} me={me} />)
+        rounds.map((round) => (
+          <RoundView key={round.id} round={round} me={me} onViewProfile={setViewingProfile} />
+        ))
       )}
 
       {me && met.length > 0 && (
         <section>
-          <h2 className="mb-2 font-serif text-xl">Who you’ve met</h2>
+          <h2 className="mb-2 font-serif text-xl">Who you’ve met through dinners / coffee</h2>
           <ul className="flex flex-wrap gap-2">
             {met.map(({ id, count }) => {
               const person = byId.get(id)
               if (!person) return null
               return (
                 <li key={id}>
-                  <Link
-                    to={`/directory/${id}`}
+                  <button
+                    onClick={() => setViewingProfile(person)}
                     className="flex items-center gap-2 rounded-full border border-ink-200 py-1 pl-1 pr-3 text-sm hover:border-green-400 dark:border-ink-800"
                   >
                     <PersonPhoto person={person} className="size-7 rounded-full text-[10px]" />
                     {person.firstName}
                     {count > 1 && <span className="text-xs text-ink-400">×{count}</span>}
-                  </Link>
+                  </button>
                 </li>
               )
             })}
           </ul>
         </section>
       )}
+
+      {viewingProfile && (
+        <PersonDetail
+          person={viewingProfile}
+          onClose={() => setViewingProfile(null)}
+          onNavigate={setViewingProfile}
+        />
+      )}
     </div>
   )
 }
 
-function RoundView({ round, me }: { round: MeetupRound; me: string }) {
+function RoundView({
+  round,
+  me,
+  onViewProfile,
+}: {
+  round: MeetupRound
+  me: string
+  onViewProfile: (person: Person) => void
+}) {
   const { byId } = useSectionData()
   const mine = round.groups.find((group) => group.memberIds.includes(me))
 
@@ -137,8 +145,8 @@ function RoundView({ round, me }: { round: MeetupRound; me: string }) {
               if (!person) return null
               return (
                 <li key={id}>
-                  <Link
-                    to={`/directory/${id}`}
+                  <button
+                    onClick={() => onViewProfile(person)}
                     className={`flex w-24 flex-col items-center gap-1 text-center ${
                       id === me ? 'opacity-50' : ''
                     }`}
@@ -148,7 +156,7 @@ function RoundView({ round, me }: { round: MeetupRound; me: string }) {
                     {person.dietary && person.dietary.length > 0 && (
                       <span className="text-[10px] text-ink-400">{person.dietary.join(', ')}</span>
                     )}
-                  </Link>
+                  </button>
                 </li>
               )
             })}
@@ -176,6 +184,89 @@ function RoundView({ round, me }: { round: MeetupRound; me: string }) {
         </div>
       </details>
     </section>
+  )
+}
+
+/**
+ * Type-to-filter name picker, so finding yourself doesn't mean scrolling
+ * ninety names in a native `<select>` — especially painful if your name is
+ * near the end of the alphabet.
+ */
+function NamePicker({
+  id,
+  people,
+  value,
+  onChange,
+}: {
+  id: string
+  people: Person[]
+  value: string
+  onChange: (id: string) => void
+}) {
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+
+  // Reflect the current selection in the box whenever the list isn't open —
+  // and start from a blank slate the moment it is, so typing never has to
+  // fight the previous choice still sitting in the field.
+  useEffect(() => {
+    if (open) return
+    const selected = people.find((p) => p.id === value)
+    setQuery(selected?.displayName ?? '')
+  }, [value, open, people])
+
+  const fuse = useMemo(
+    () => new Fuse(people, { keys: ['displayName'], threshold: 0.35, ignoreLocation: true }),
+    [people],
+  )
+
+  const matches = useMemo(() => {
+    const trimmed = query.trim()
+    const base = trimmed ? fuse.search(trimmed).map((r) => r.item) : people
+    return base.slice(0, 8)
+  }, [query, fuse, people])
+
+  function select(person: Person) {
+    onChange(person.id)
+    setOpen(false)
+  }
+
+  return (
+    <div className="relative max-w-xs">
+      <input
+        id={id}
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onFocus={() => {
+          setQuery('')
+          setOpen(true)
+        }}
+        onBlur={() => setOpen(false)}
+        placeholder="Type your name…"
+        autoComplete="off"
+        className="w-full rounded-lg border border-ink-300 bg-white px-3 py-2 dark:border-ink-700 dark:bg-ink-900"
+      />
+      {open && (
+        <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-ink-200 bg-white shadow-lg dark:border-ink-800 dark:bg-ink-900">
+          {matches.length === 0 ? (
+            <p className="px-3 py-2 text-sm text-ink-400">No one matches that</p>
+          ) : (
+            matches.map((person) => (
+              <button
+                key={person.id}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => select(person)}
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-ink-100 dark:hover:bg-ink-800"
+              >
+                {person.displayName}
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 

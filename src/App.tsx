@@ -1,4 +1,4 @@
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useSectionData } from './gate/SectionData'
 import { UnlockScreen } from './gate/UnlockScreen'
 import { WelcomePage } from './pages/WelcomePage'
@@ -16,6 +16,8 @@ const TABS = [
 
 export function App() {
   const { status, lock, isSampleBuild } = useSectionData()
+  const { pathname } = useLocation()
+  const isHome = pathname === '/'
 
   if (status !== 'unlocked') return <UnlockScreen />
 
@@ -35,21 +37,22 @@ export function App() {
           </NavLink>
 
           <nav className="flex flex-1 gap-1 overflow-x-auto" aria-label="Sections">
-            {TABS.map((tab) => (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                className={({ isActive }) =>
-                  `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition ${
-                    isActive
-                      ? 'bg-green-600 text-white'
-                      : 'text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800'
-                  }`
-                }
-              >
-                {tab.label}
-              </NavLink>
-            ))}
+            {!isHome &&
+              TABS.map((tab) => (
+                <NavLink
+                  key={tab.to}
+                  to={tab.to}
+                  className={({ isActive }) =>
+                    `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition ${
+                      isActive
+                        ? 'bg-green-600 text-white'
+                        : 'text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800'
+                    }`
+                  }
+                >
+                  {tab.label}
+                </NavLink>
+              ))}
           </nav>
 
           <button
