@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useSectionData } from './SectionData'
 import sectionPhoto from '../assets/section-photo.jpg'
+import jBalloon from '../assets/j-balloon.jpg'
 
 /**
  * The gate. Deliberately plain: it explains what the site is, why it is behind a
@@ -34,9 +35,11 @@ export function UnlockScreen() {
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex size-20 items-center justify-center rounded-full bg-green-100">
-            <p className="font-serif text-4xl text-green-700">J</p>
-          </div>
+          <img
+            src={jBalloon}
+            alt=""
+            className="mx-auto mb-3 size-20 rounded-full border-2 border-green-100 object-cover"
+          />
           <h1 className="font-serif text-3xl text-white">Section J</h1>
           <p className="mt-1 text-sm text-ink-200">HBS MBA Class of 2028</p>
         </div>
