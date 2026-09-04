@@ -58,7 +58,7 @@ Options, from least to most:
 
 - **Hide your phone number** — your name and photo stay, the number goes.
 - **Hide your photo** — you appear as initials, and you are excluded from the
-  Know Everyone quiz.
+  Just for Fun quiz.
 - **Hide your birthday** — you disappear from the calendar.
 - **Remove yourself entirely** — you do not appear anywhere on the site.
 

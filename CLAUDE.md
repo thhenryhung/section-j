@@ -39,10 +39,16 @@ sibling directory (`../section-j-data`). CI reads it with a read-only token.
 data/          public, non-sensitive: events, courses, synthetic sample roster
 scripts/       data pipeline + pairing CLI
 scripts/browser/  DevTools snippets for harvesting HBS class cards
+src/assets/    public, non-sensitive images (section photo, unlock-screen badge)
 src/gate/      passphrase unlock and decryption
 src/lib/       crypto, pairing, calendar, people — framework-free
-src/pages/     one file per tab
+src/pages/     one file per tab, plus the post-unlock welcome page
 ```
+
+**Brand:** Section J's own green (`--color-green-*` in `src/index.css`) carries all
+brand decoration — nav, buttons, links, the unlock screen. Crimson survives only
+for genuine error states (wrong passphrase, wrong quiz answer), never as decoration
+— see the comment at the top of `src/index.css` for why that split matters.
 
 ## Commands
 
@@ -53,7 +59,7 @@ src/pages/     one file per tab
 | `npm run data:parse` | Real class cards → `roster.json`. Needs `../section-j-data`. |
 | `npm run data:photos` | Photos → webp bundle. |
 | `npm run data:encrypt` | Reports passphrase length and source, never the value. |
-| `npm run pair -- --kind dinner --date 2026-09-17` | Add `--dry-run` to preview. |
+| `npm run pair -- --kind dinner --date 2026-10-08` | Add `--dry-run` to preview. |
 | `npm run check:leaks` | Before every push. |
 
 ## Non-obvious things
@@ -75,9 +81,10 @@ Learned the hard way. Ignoring these reintroduces real bugs.
 - **The results table prints names as "Last, First"**, despite the column heading
   saying "Name". Assuming otherwise silently broke every name-based join. All name
   matching goes through `nameKey()`, which sorts tokens so order cannot matter.
-- **`data/courses.json` contains placeholder professors, rooms and times.** The
-  calendar currently shows fiction. Replacing it with the real schedule is the
-  most useful small contribution available.
+- **`data/courses.json` still contains placeholder professors, rooms and times**,
+  and Jalendar no longer imports it at all — course entries were dropped from the
+  calendar by decision (see `git log` for `CalendarPage.tsx`). Bringing real course
+  times back means re-adding the import there, not just fixing the JSON.
 - **The passphrase that unlocks a build is whatever `data:encrypt` saw** when it
   wrote `public/data/*.enc`. Change the secret and you must re-encrypt. The
   deployed site and a local dev build are encrypted independently and can drift.
@@ -85,6 +92,26 @@ Learned the hard way. Ignoring these reintroduces real bugs.
   Actions one means deploys work but a Codespace silently builds with `demo`.
 - Sample data mirrors real sparsity, so empty states are genuinely exercised.
   Always check a person with no photo, no professional interests, no activities.
+- **`section-j-data/photos/` must hold the actual image files, not just the
+  derived `photos.json`.** `npm run data:photos` (the deploy's "Normalise photos"
+  step) *regenerates* `photos.json` from that folder on every single run — commit
+  `roster.json`/`photos.json` without the raw images behind them and CI silently
+  overwrites good photo data with an empty bundle on the very next deploy. This is
+  exactly what happened the first time real data went live: every photo quietly
+  became initials, with no error anywhere in the pipeline.
+- **`package-lock.json` must be committed.** It wasn't, originally, which
+  masked itself for a long time — every deploy failed earlier (missing secrets),
+  so `npm ci` never got far enough to hit the missing lockfile. Fixing the earlier
+  failure immediately surfaced this one. If CI ever reports "unable to cache
+  dependencies" or `npm ci` failing outright, check this first.
+- **`check:leaks`'s loose `+`-prefixed phone pattern needs a separator.**
+  `\+\d{1,3}\s*\d{7,12}` (optional whitespace) matches a bare `+` sitting next to
+  any 7–12 digit run — which a minified production bundle is full of, once every
+  dependency's numeric constants get concatenated together. It only ever showed up
+  in `dist/`, never in source, so it stayed invisible until the first real deploy.
+  Fixed in `scripts/check-leaks.ts` by requiring an actual separator character, the
+  same fix already applied once to the plain digit-run pattern next to it — same
+  bug shape, different branch of the same regex.
 - Opt-outs are applied at **build time** — a suppressed field is never encrypted or
   shipped, not merely hidden in the UI. Keep it that way.
 
