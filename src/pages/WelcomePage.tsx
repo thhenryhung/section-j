@@ -1,4 +1,4 @@
-import { cloneElement } from 'react'
+import { cloneElement, type ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 import sectionPhoto from '../assets/section-photo.jpg'
 
@@ -6,7 +6,7 @@ type Feature = {
   to: string
   name: string
   description: string
-  icon: JSX.Element
+  icon: ReactElement
 }
 
 const ICON_PROPS = {
