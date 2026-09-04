@@ -220,34 +220,39 @@ export function CalendarPage() {
               const entries = byDate.get(date) ?? []
               const isToday = date === today
 
+              const hasEntries = entries.length > 0
+
               return (
                 <div
                   key={date}
-                  className={`min-h-24 border-b border-r border-ink-200 p-1 last:border-r-0 dark:border-ink-800 ${
+                  onClick={hasEntries ? () => goToDate(date) : undefined}
+                  onKeyDown={
+                    hasEntries
+                      ? (e) => {
+                          if (e.target !== e.currentTarget) return
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            goToDate(date)
+                          }
+                        }
+                      : undefined
+                  }
+                  role={hasEntries ? 'button' : undefined}
+                  tabIndex={hasEntries ? 0 : undefined}
+                  aria-label={hasEntries ? `See ${formatLongDate(date)} in the timetable` : undefined}
+                  className={`min-h-24 border-b border-r border-ink-200 p-1 text-left last:border-r-0 dark:border-ink-800 ${
                     inMonth ? '' : 'bg-ink-100/60 dark:bg-ink-900/40'
-                  }`}
+                  } ${hasEntries ? 'cursor-pointer transition hover:bg-green-50 dark:hover:bg-green-950/40' : ''}`}
                 >
-                  {entries.length > 0 ? (
-                    <button
-                      onClick={() => goToDate(date)}
-                      aria-label={`See ${formatLongDate(date)} in the timetable`}
-                      className={`mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs transition hover:ring-2 hover:ring-green-400 ${
-                        isToday ? 'bg-green-600 font-semibold text-white' : 'text-ink-400'
-                      }`}
-                    >
-                      {fromISODate(date).getUTCDate()}
-                    </button>
-                  ) : (
-                    <div
-                      className={`mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs ${
-                        isToday ? 'bg-green-600 font-semibold text-white' : 'text-ink-400'
-                      }`}
-                    >
-                      {fromISODate(date).getUTCDate()}
-                    </div>
-                  )}
+                  <div
+                    className={`mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs ${
+                      isToday ? 'bg-green-600 font-semibold text-white' : 'text-ink-400'
+                    }`}
+                  >
+                    {fromISODate(date).getUTCDate()}
+                  </div>
 
-                  <ul className="flex flex-col gap-0.5">
+                  <ul className="flex flex-col gap-0.5" onClick={(e) => e.stopPropagation()}>
                     {entries.slice(0, 3).map((entry) => (
                       <li key={entry.id}>
                         <EntryChip entry={entry} onViewProfile={viewProfile} />
