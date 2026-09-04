@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useSectionData } from '../gate/SectionData'
 import { PersonPhoto } from '../components/PersonPhoto'
+import { PersonDetail } from '../components/PersonDetail'
 import { currentRoleLabel } from '../lib/people'
 import { mulberry32 } from '../lib/pairing'
 import type { Person } from '../lib/types'
@@ -109,6 +109,7 @@ export function KnowEveryonePage() {
   const [picked, setPicked] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
+  const [viewingProfile, setViewingProfile] = useState<Person | null>(null)
 
   const questions = useMemo(() => {
     const random = mulberry32(seed)
@@ -178,7 +179,6 @@ export function KnowEveryonePage() {
     setStreak(0)
   }
 
-  const learned = Object.values(progress).filter((entry) => entry.box >= 3).length
   const withPhotos = people.filter((p) => p.photoId).length
 
   if (withPhotos < CHOICES) {
@@ -214,11 +214,6 @@ export function KnowEveryonePage() {
             </button>
           ))}
         </div>
-
-        <p className="text-sm text-ink-500">
-          <span className="font-serif text-2xl text-green-700 dark:text-green-400">{learned}</span>
-          <span className="text-ink-400">/{withPhotos} learned</span>
-        </p>
       </div>
 
       {finished ? (
@@ -316,12 +311,12 @@ export function KnowEveryonePage() {
 
             {picked && (
               <div className="flex items-center justify-between gap-3 border-t border-ink-200 px-4 py-3 dark:border-ink-800">
-                <Link
-                  to={`/directory/${question.answer.id}`}
+                <button
+                  onClick={() => setViewingProfile(question.answer)}
                   className="text-sm text-ink-500 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
                 >
                   See {question.answer.firstName}’s profile
-                </Link>
+                </button>
                 <button
                   onClick={next}
                   autoFocus
@@ -333,6 +328,10 @@ export function KnowEveryonePage() {
             )}
           </div>
         )
+      )}
+
+      {viewingProfile && (
+        <PersonDetail person={viewingProfile} onClose={() => setViewingProfile(null)} />
       )}
     </div>
   )
