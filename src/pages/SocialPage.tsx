@@ -30,6 +30,13 @@ export function SocialPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <p className="text-sm text-ink-500">
+        New tables and pairings are assigned automatically every 3 weeks, alternating between
+        small-group dinners and 1:1 coffee chats. The system avoids repeating a pairing until
+        everyone’s been covered once. Can’t make a round? Let us know you’re unavailable and
+        we’ll leave you out of that round’s assignment.
+      </p>
+
       <div className="card flex flex-wrap items-end gap-4 p-4">
         <div className="flex-1">
           <label htmlFor="me" className="block text-sm font-medium">
