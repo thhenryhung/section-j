@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useSectionData } from '../gate/SectionData'
+import { PersonDetail } from '../components/PersonDetail'
 import {
   DAY_NAMES,
   MONTH_NAMES,
@@ -14,7 +14,7 @@ import {
   toICS,
   toISODate,
 } from '../lib/calendar'
-import type { CalendarEntry, EventCategory, SectionEvent } from '../lib/types'
+import type { CalendarEntry, EventCategory, Person, SectionEvent } from '../lib/types'
 import rawEvents from '../../data/events.json'
 
 const events = rawEvents as SectionEvent[]
@@ -46,7 +46,7 @@ const CATEGORY_DOT: Record<EventCategory, string> = {
 const ALL_CATEGORIES: EventCategory[] = ['section', 'social', 'birthday']
 
 export function CalendarPage() {
-  const { people } = useSectionData()
+  const { people, byId } = useSectionData()
 
   const today = toISODate(new Date())
   const [cursor, setCursor] = useState(() => {
@@ -56,7 +56,13 @@ export function CalendarPage() {
   const [view, setView] = useState<'calendar' | 'timetable'>('calendar')
   const [hidden, setHidden] = useState<Set<EventCategory>>(new Set())
   const [scrollTarget, setScrollTarget] = useState<string | null>(null)
+  const [viewingProfile, setViewingProfile] = useState<Person | null>(null)
   const timetableRefs = useRef(new Map<string, HTMLDivElement>())
+
+  function viewProfile(personId: string) {
+    const person = byId.get(personId)
+    if (person) setViewingProfile(person)
+  }
 
   /**
    * Birthdays are generated for the year on screen and the next one, so scrolling
@@ -244,7 +250,7 @@ export function CalendarPage() {
                   <ul className="flex flex-col gap-0.5">
                     {entries.slice(0, 3).map((entry) => (
                       <li key={entry.id}>
-                        <EntryChip entry={entry} />
+                        <EntryChip entry={entry} onViewProfile={viewProfile} />
                       </li>
                     ))}
                     {entries.length > 3 && (
@@ -275,7 +281,7 @@ export function CalendarPage() {
                 {entry.startTime && <span className="block">{entry.startTime}</span>}
               </div>
               <div className="min-w-0 flex-1">
-                <EntryTitle entry={entry} />
+                <EntryTitle entry={entry} onViewProfile={viewProfile} />
                 {entry.location && <p className="text-xs text-ink-400">{entry.location}</p>}
                 {entry.description && (
                   <p className="mt-0.5 text-xs text-ink-500">{entry.description}</p>
@@ -291,17 +297,31 @@ export function CalendarPage() {
         <code className="rounded bg-ink-100 px-1 dark:bg-ink-800">data/events.json</code> — open a
         pull request and it appears here.
       </p>
+
+      {viewingProfile && (
+        <PersonDetail
+          person={viewingProfile}
+          onClose={() => setViewingProfile(null)}
+          onNavigate={setViewingProfile}
+        />
+      )}
     </div>
   )
 }
 
-function EntryChip({ entry }: { entry: CalendarEntry }) {
-  const className = `block truncate rounded px-1 py-0.5 text-[10px] ${CATEGORY_STYLE[entry.category]}`
+function EntryChip({
+  entry,
+  onViewProfile,
+}: {
+  entry: CalendarEntry
+  onViewProfile: (personId: string) => void
+}) {
+  const className = `block w-full truncate rounded px-1 py-0.5 text-left text-[10px] ${CATEGORY_STYLE[entry.category]}`
   if (entry.personId) {
     return (
-      <Link to={`/directory/${entry.personId}`} className={className} title={entry.title}>
+      <button onClick={() => onViewProfile(entry.personId!)} className={className} title={entry.title}>
         {entry.title}
-      </Link>
+      </button>
     )
   }
   return (
@@ -311,7 +331,13 @@ function EntryChip({ entry }: { entry: CalendarEntry }) {
   )
 }
 
-function EntryTitle({ entry }: { entry: CalendarEntry }) {
+function EntryTitle({
+  entry,
+  onViewProfile,
+}: {
+  entry: CalendarEntry
+  onViewProfile: (personId: string) => void
+}) {
   const content = (
     <>
       <span className={`mr-2 inline-block size-2 rounded-full align-middle ${CATEGORY_DOT[entry.category]}`} />
@@ -320,9 +346,12 @@ function EntryTitle({ entry }: { entry: CalendarEntry }) {
   )
   if (entry.personId) {
     return (
-      <Link to={`/directory/${entry.personId}`} className="text-sm hover:text-green-700 dark:hover:text-green-400">
+      <button
+        onClick={() => onViewProfile(entry.personId!)}
+        className="text-sm hover:text-green-700 dark:hover:text-green-400"
+      >
         {content}
-      </Link>
+      </button>
     )
   }
   if (entry.url) {
