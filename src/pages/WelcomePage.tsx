@@ -1,4 +1,4 @@
-import { cloneElement, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 import sectionPhoto from '../assets/section-photo.jpg'
 
@@ -10,6 +10,8 @@ type Feature = {
 }
 
 const ICON_PROPS = {
+  width: 26,
+  height: 26,
   viewBox: '0 0 24 24',
   fill: 'none',
   stroke: 'currentColor',
@@ -92,9 +94,7 @@ export function WelcomePage() {
               to={feature.to}
               className="card group flex flex-col gap-2 p-5 transition hover:border-green-400 hover:shadow-md"
             >
-              <div className="text-green-600 dark:text-green-400">
-                {cloneElement(feature.icon, { width: 26, height: 26 })}
-              </div>
+              <div className="text-green-600 dark:text-green-400">{feature.icon}</div>
               <p className="font-serif text-lg text-ink-900 group-hover:text-green-700 dark:text-ink-50 dark:group-hover:text-green-400">
                 {feature.name}
               </p>
