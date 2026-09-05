@@ -149,7 +149,7 @@ export type CalendarEntry = {
 export type MeetupKind = 'dinner' | 'onetoone'
 
 export type MeetupGroup = {
-  /** 1-based label shown in the UI, e.g. "Table 7". */
+  /** 1-based label shown in the UI, e.g. "Dinner Group 7". */
   label: string
   memberIds: string[]
 }

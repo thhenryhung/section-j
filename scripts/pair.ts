@@ -86,7 +86,7 @@ const round: MeetupRound = {
 
 const nameOf = new Map(roster.people.map((p) => [p.id, p.displayName]))
 
-console.log(`\n${kind === 'dinner' ? 'Dinners' : '1:1 chats'} · ${date}`)
+console.log(`\n${kind === 'dinner' ? 'Dinners' : 'Coffee chats'} · ${date}`)
 console.log(`Source: ${useSample ? 'SAMPLE DATA' : 'real roster'}  ·  seed ${seed}\n`)
 
 for (const group of result.groups) {

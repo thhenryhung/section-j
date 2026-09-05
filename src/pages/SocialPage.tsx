@@ -33,8 +33,8 @@ export function SocialPage() {
   return (
     <div className="flex flex-col gap-6">
       <p className="text-sm text-ink-500">
-        New tables and pairings are assigned automatically every 3 weeks, alternating between
-        small-group dinners and 1:1 coffee chats. The system avoids repeating a pairing until
+        New dinner groups and pairings are assigned automatically every 3 weeks, alternating between
+        small-group dinners and coffee chats. The system avoids repeating a pairing until
         everyone’s been covered once. Can’t make a round? Let us know you’re unavailable and
         we’ll leave you out of that round’s assignment.
       </p>
@@ -67,7 +67,7 @@ export function SocialPage() {
         <div className="card p-8 text-center">
           <p className="font-serif text-xl">No rounds yet</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-ink-500">
-            Dinners of six run every three weeks, with 1:1 coffee chats on the weeks between. The
+            Dinners of six run every three weeks, with coffee chats on the weeks between. The
             section posts each round on schedule — check back soon, or ask your organiser when
             the next one lands.
           </p>
@@ -129,7 +129,7 @@ function RoundView({
     <section>
       <div className="mb-2 flex items-baseline justify-between">
         <h2 className="font-serif text-xl">
-          {round.kind === 'dinner' ? 'Dinners' : '1:1 chats'} · {formatLongDate(round.date)}
+          {round.kind === 'dinner' ? 'Dinners' : 'Coffee chats'} · {formatLongDate(round.date)}
         </h2>
         <p className="text-xs text-ink-400">{round.groups.length} groups</p>
       </div>

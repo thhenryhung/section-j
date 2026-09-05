@@ -50,7 +50,7 @@ const FEATURES: Feature[] = [
   {
     to: '/social',
     name: 'Jocial',
-    description: 'Your dinner table and 1:1 coffee pairing — new ones announced every 3 weeks',
+    description: 'Your dinner group and coffee chat pairing — new ones announced every 3 weeks',
     icon: (
       <svg {...ICON_PROPS}>
         <circle cx="9" cy="8" r="3" />

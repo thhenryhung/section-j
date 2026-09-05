@@ -1,7 +1,7 @@
 [
   {
     "id": "onetoone-round-1",
-    "title": "1:1 coffee chats — Round 1",
+    "title": "Coffee chats — Round 1",
     "category": "social",
     "date": "2026-09-24",
     "description": "Your pairing is on the Social tab. Any time that week works."
@@ -12,12 +12,12 @@
     "category": "social",
     "date": "2026-10-08",
     "startTime": "19:00",
-    "location": "Tables assigned on the Social tab",
-    "description": "Groups of six. Check the Social tab for your table."
+    "location": "Groups assigned on the Social tab",
+    "description": "Groups of six. Check the Social tab for your group."
   },
   {
     "id": "onetoone-round-2",
-    "title": "1:1 coffee chats — Round 2",
+    "title": "Coffee chats — Round 2",
     "category": "social",
     "date": "2026-10-22"
   },
@@ -27,17 +27,17 @@
     "category": "social",
     "date": "2026-11-05",
     "startTime": "19:00",
-    "location": "Tables assigned on the Social tab"
+    "location": "Groups assigned on the Social tab"
   },
   {
     "id": "onetoone-round-3",
-    "title": "1:1 coffee chats — Round 3",
+    "title": "Coffee chats — Round 3",
     "category": "social",
     "date": "2026-11-19"
   },
   {
     "id": "onetoone-round-4",
-    "title": "1:1 coffee chats — Round 4",
+    "title": "Coffee chats — Round 4",
     "category": "social",
     "date": "2027-02-11"
   },
@@ -47,7 +47,7 @@
     "category": "social",
     "date": "2027-01-28",
     "startTime": "19:00",
-    "location": "Tables assigned on the Social tab"
+    "location": "Groups assigned on the Social tab"
   },
   {
     "id": "dinner-round-4",
@@ -55,11 +55,11 @@
     "category": "social",
     "date": "2027-02-25",
     "startTime": "19:00",
-    "location": "Tables assigned on the Social tab"
+    "location": "Groups assigned on the Social tab"
   },
   {
     "id": "onetoone-round-5",
-    "title": "1:1 coffee chats — Round 5",
+    "title": "Coffee chats — Round 5",
     "category": "social",
     "date": "2027-03-11"
   },
@@ -69,11 +69,11 @@
     "category": "social",
     "date": "2027-03-25",
     "startTime": "19:00",
-    "location": "Tables assigned on the Social tab"
+    "location": "Groups assigned on the Social tab"
   },
   {
     "id": "onetoone-round-6",
-    "title": "1:1 coffee chats — Round 6",
+    "title": "Coffee chats — Round 6",
     "category": "social",
     "date": "2027-04-08"
   },
@@ -83,11 +83,11 @@
     "category": "social",
     "date": "2027-04-22",
     "startTime": "19:00",
-    "location": "Tables assigned on the Social tab"
+    "location": "Groups assigned on the Social tab"
   },
   {
     "id": "onetoone-round-7",
-    "title": "1:1 coffee chats — Round 7",
+    "title": "Coffee chats — Round 7",
     "category": "social",
     "date": "2027-05-06"
   },
@@ -97,7 +97,7 @@
     "category": "social",
     "date": "2027-05-20",
     "startTime": "19:00",
-    "location": "Tables assigned on the Social tab"
+    "location": "Groups assigned on the Social tab"
   },
   {
     "id": "section-retreat-day1",
