@@ -12,7 +12,11 @@
  * derivable from or interchangeable with the section passphrase.
  */
 
-const HASH_ITERATIONS = 600_000 // matches PBKDF2_ITERATIONS in src/lib/crypto.ts
+// The Workers runtime rejects PBKDF2 above 100k iterations ("iteration counts
+// above 100000 are not supported") even though Node and browsers allow far
+// more — unlike src/lib/crypto.ts, this hash is verified inside a Function,
+// so it's capped at what that runtime actually accepts.
+const HASH_ITERATIONS = 100_000
 const SALT_BYTES = 16
 const HASH_BYTES = 32
 
