@@ -30,19 +30,34 @@ sibling directory (`../section-j-data`). CI reads it with a read-only token.
   shared section passphrase (PBKDF2-SHA256, 600k iterations) and decrypts in
   memory. `src/lib/crypto.ts` is imported by *both* the build script and the
   browser, so the two halves cannot drift apart.
-- `src/lib/` imports no React, so `pairing.ts` runs identically in the browser
-  admin page and in the `npm run pair` CLI.
+- `src/lib/` imports no React, so `pairing.ts` runs identically wherever it's
+  called from — today that's only the `npm run pair` CLI. An earlier in-app
+  admin page that called it client-side was deliberately removed (no way to
+  tell an admin from a regular member); see the Admin panel entry below for
+  its unrelated, properly-authed replacement, which doesn't touch pairing yet.
 - Fork PRs get no secrets from GitHub Actions and build against a synthetic
   roster. That is the security boundary working, not an obstacle to route around.
+- **Admin panel** (`functions/api/admin/*`, `src/pages/AdminPage.tsx`): a
+  Cloudflare Pages Function + KV namespace let a small number of admins edit
+  calendar events live, gated by a passphrase that is *separate* from
+  `SECTION_PASSPHRASE` and checked server-side — the browser never holds the
+  GitHub write token. This is the project's first server-side compute and
+  first mutable persistence layer; see `SETUP.md` §8 for setup and
+  `functions/api/admin/events.ts`'s header comment for the write path. Roster
+  opt-outs and pairing-round control are not part of it yet — both would need
+  their own narrowly-scoped write path into the *private* `section-j-data`
+  repo, which is a separate, not-yet-built piece of work.
 
 ```
 data/          public, non-sensitive: events, courses, synthetic sample roster
+functions/     Cloudflare Pages Functions — the admin API (functions/api/admin/*)
+                and the public live-events read endpoint (functions/api/events.ts)
 scripts/       data pipeline + pairing CLI
 scripts/browser/  DevTools snippets for harvesting HBS class cards
 src/assets/    public, non-sensitive images (section photo, unlock-screen badge)
 src/gate/      passphrase unlock and decryption
-src/lib/       crypto, pairing, calendar, people — framework-free
-src/pages/     one file per tab, plus the post-unlock welcome page
+src/lib/       crypto, pairing, calendar, people, siteConfig — framework-free
+src/pages/     one file per tab, plus the post-unlock welcome page and admin panel
 ```
 
 **Brand:** Section J's own green (`--color-green-*` in `src/index.css`) carries all
@@ -61,6 +76,8 @@ for genuine error states (wrong passphrase, wrong quiz answer), never as decorat
 | `npm run data:encrypt` | Reports passphrase length and source, never the value. |
 | `npm run pair -- --kind dinner --date 2026-10-08` | Add `--dry-run` to preview. |
 | `npm run check:leaks` | Before every push. |
+| `npm run functions:dev` | Builds, then runs `functions/` locally via `wrangler pages dev` — the only way to test the admin API; plain `npm run dev` doesn't run Functions. |
+| `npm run admin:hash-passphrase` | One-time: hashes `ADMIN_PASSPHRASE` for the Cloudflare dashboard. See `SETUP.md` §8. |
 
 ## Non-obvious things
 

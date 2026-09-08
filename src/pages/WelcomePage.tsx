@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 import sectionPhoto from '../assets/section-photo.jpg'
+import { siteConfig } from '../lib/siteConfig'
 
 type Feature = {
   to: string
@@ -83,7 +84,7 @@ export function WelcomePage() {
 
       <div className="relative px-5 py-10 sm:px-8 sm:py-12">
         <div className="mb-8 text-center">
-          <h1 className="font-serif text-3xl text-white">Welcome to Section J</h1>
+          <h1 className="font-serif text-3xl text-white">Welcome to {siteConfig.orgName}</h1>
           <p className="mt-1 text-sm text-ink-200">Ninety classmates, one place to find them</p>
         </div>
 

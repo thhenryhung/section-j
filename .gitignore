@@ -32,6 +32,12 @@ public/data/manifest.json
 .env
 .env.*
 !.env.example
+# Cloudflare Wrangler's local-secrets file for `wrangler pages dev` —
+# ADMIN_PASSPHRASE_HASH / ADMIN_SESSION_SECRET / GITHUB_ADMIN_TOKEN for local
+# testing only. Real values live in the Cloudflare dashboard, never here.
+.dev.vars
+.dev.vars.*
+.wrangler/
 
 # Local machine and employer specifics. Claude reads this alongside CLAUDE.md,
 # but it must never ship to the section in a public repo.

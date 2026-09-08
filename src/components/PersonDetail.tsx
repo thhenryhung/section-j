@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { PersonPhoto } from './PersonPhoto'
 import { useSectionData } from '../gate/SectionData'
 import { currentRoleLabel, regionLabel, similarPeople } from '../lib/people'
+import { siteConfig } from '../lib/siteConfig'
 import type { Person } from '../lib/types'
 
 const MONTHS = [
@@ -76,7 +77,7 @@ export function PersonDetail({
 
       <div className="relative flex h-full w-full max-w-md flex-col overflow-y-auto bg-ink-50 shadow-2xl dark:bg-ink-950">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-ink-200 bg-ink-50/90 px-4 py-2 backdrop-blur dark:border-ink-800 dark:bg-ink-950/90">
-          <p className="text-xs uppercase tracking-wide text-ink-400">Section J</p>
+          <p className="text-xs uppercase tracking-wide text-ink-400">{siteConfig.orgName}</p>
           <button
             ref={closeRef}
             onClick={onClose}

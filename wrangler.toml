@@ -1,0 +1,16 @@
+# Cloudflare Pages Functions config for the live admin-events API
+# (functions/api/admin/*, functions/api/events.ts). Forking this repo for
+# another section: change `name` to your Cloudflare Pages project name
+# (matches vars.CLOUDFLARE_PROJECT in .github/workflows/deploy.yml) and
+# create your own KV namespace — `wrangler kv namespace create EVENTS_KV`
+# (and again with `--preview` for local dev) — then paste the ids below.
+# TOML can't import src/lib/siteConfig.ts, so these stay hand-edited on fork.
+
+name = "section-j"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-09-01"
+
+[[kv_namespaces]]
+binding = "EVENTS_KV"
+id = "75b8a835a5e845528f94a340742ba720"
+preview_id = "98341f693c85462989ab59b104b2b662"

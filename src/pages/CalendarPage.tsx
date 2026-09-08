@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useSectionData } from '../gate/SectionData'
 import { PersonDetail } from '../components/PersonDetail'
 import {
@@ -17,7 +18,7 @@ import {
 import type { CalendarEntry, EventCategory, Person, SectionEvent } from '../lib/types'
 import rawEvents from '../../data/events.json'
 
-const events = rawEvents as SectionEvent[]
+const EVENTS_POLL_MS = 45_000
 
 /**
  * "section" gets the section's own green — deliberately not "emerald", which
@@ -48,6 +49,30 @@ const ALL_CATEGORIES: EventCategory[] = ['section', 'social', 'birthday']
 export function CalendarPage() {
   const { people, byId } = useSectionData()
 
+  // Static import is the seed/fallback: it's what renders offline, in plain
+  // `npm run dev` (no Functions runtime), or if /api/events ever errors — the
+  // fetch below only ever improves on it, never blocks the page on it.
+  const [events, setEvents] = useState<SectionEvent[]>(() => rawEvents as SectionEvent[])
+
+  // Polling (not just fetch-on-mount) so an admin's edit reaches a tab that's
+  // already open on the Calendar, not just a fresh navigation to it.
+  useEffect(() => {
+    let cancelled = false
+    const load = () =>
+      fetch('/api/events', { cache: 'no-cache' })
+        .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+        .then((data: SectionEvent[]) => {
+          if (!cancelled) setEvents(data)
+        })
+        .catch(() => {}) // keep whatever we already have — never block the calendar on this
+    load()
+    const interval = setInterval(load, EVENTS_POLL_MS)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [])
+
   const today = toISODate(new Date())
   const [cursor, setCursor] = useState(() => {
     const now = fromISODate(today)
@@ -75,7 +100,7 @@ export function CalendarPage() {
         ...birthdayEntries(people, cursor.year),
         ...birthdayEntries(people, cursor.year + 1),
       ]),
-    [people, cursor.year],
+    [events, people, cursor.year],
   )
 
   const visible = useMemo(
@@ -298,9 +323,13 @@ export function CalendarPage() {
       )}
 
       <p className="text-xs text-ink-400">
-        Something missing? Section events live in{' '}
-        <code className="rounded bg-ink-100 px-1 dark:bg-ink-800">data/events.json</code> — open a
-        pull request and it appears here.
+        Something missing? An admin can add it instantly from{' '}
+        <Link to="/admin" className="underline underline-offset-2">
+          the admin panel
+        </Link>
+        , or open a pull request against{' '}
+        <code className="rounded bg-ink-100 px-1 dark:bg-ink-800">data/events.json</code> for a
+        change that goes through review first.
       </p>
 
       {viewingProfile && (

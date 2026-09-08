@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useSectionData } from './SectionData'
 import sectionPhoto from '../assets/section-photo.jpg'
 import jBalloon from '../assets/j-balloon.jpg'
+import { siteConfig } from '../lib/siteConfig'
 
 /**
  * The gate. Deliberately plain: it explains what the site is, why it is behind a
@@ -40,8 +41,8 @@ export function UnlockScreen() {
             alt=""
             className="mx-auto mb-3 size-20 rounded-full border-2 border-green-100 object-cover"
           />
-          <h1 className="font-serif text-3xl text-white">Section J</h1>
-          <p className="mt-1 text-sm text-ink-200">HBS MBA Class of 2028</p>
+          <h1 className="font-serif text-3xl text-white">{siteConfig.orgName}</h1>
+          <p className="mt-1 text-sm text-ink-200">{siteConfig.tagline}</p>
         </div>
 
         <form onSubmit={onSubmit} className="card p-6">
@@ -99,7 +100,7 @@ export function UnlockScreen() {
         <p className="mt-6 text-center text-xs text-ink-300">
           Built by the section, for the section.{' '}
           <a
-            href="https://github.com/thhenryhung/section-j"
+            href={`https://github.com/${siteConfig.github.owner}/${siteConfig.github.repo}`}
             target="_blank"
             rel="noreferrer"
             className="underline underline-offset-2 hover:text-white"

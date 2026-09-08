@@ -157,8 +157,62 @@ Deploy workflow. This CLI is the only generator now — the in-app one on the
 Social tab was removed so regular section members can't trigger a new round
 themselves.
 
+## 8. Admin panel (live calendar events)
+
+A small "Admin" link next to Logout lets a handful of trusted admins add/edit/
+remove calendar events without a PR — changes are live for every visitor
+within seconds. It's a separate credential and a separate piece of
+infrastructure from everything above: a Cloudflare Pages Function
+(`functions/api/admin/*`), a KV namespace, and its own passphrase. See
+`CLAUDE.md`'s Architecture section for how it fits together; this is just the
+one-time setup.
+
+**One-time setup:**
+
+1. Create the KV namespace and wire it into `wrangler.toml`:
+   ```bash
+   npx wrangler kv namespace create EVENTS_KV
+   npx wrangler kv namespace create EVENTS_KV --preview
+   ```
+   Paste the two returned ids into `wrangler.toml`'s `id`/`preview_id`.
+2. Generate the admin passphrase hash (pick your own passphrase, at least 10
+   characters — the plain passphrase itself is never stored anywhere):
+   ```bash
+   ADMIN_PASSPHRASE='your words here' npm run admin:hash-passphrase
+   ```
+3. In the Cloudflare Pages dashboard → your project → Settings →
+   Environment variables, add these as **secrets** (not GitHub Actions
+   secrets — these are read by the Function at request time):
+
+   | Name | Value |
+   |---|---|
+   | `ADMIN_PASSPHRASE_HASH` | output of step 2 |
+   | `ADMIN_SESSION_SECRET` | any long random string — signs the admin session cookie |
+   | `GITHUB_ADMIN_TOKEN` | fine-grained PAT, **Contents:write on this repo only** |
+
+4. Share the admin passphrase with admins over a channel only they can read —
+   same care as `SECTION_PASSPHRASE`, but don't reuse it; the two must stay
+   independent secrets.
+
+**Local testing:** `npm run functions:dev` runs the Function locally against a
+local, on-disk KV emulation via `wrangler pages dev` (separate from the fast
+`npm run dev` Vite loop, which doesn't run Functions at all — the Calendar
+page falls back to the static `data/events.json` import in that case). Put
+test-only versions of the three secrets above in a local `.dev.vars` file
+(gitignored, never commit it).
+
+**Fork note:** `wrangler.toml`'s `name` and KV namespace ids are TOML, so they
+stay hand-edited on fork, the same way `DATA_REPO`/`CLOUDFLARE_PROJECT` in
+`.github/workflows/deploy.yml` already do — see `src/lib/siteConfig.ts` for
+everything else that's config-driven instead.
+
+**Not built yet:** roster opt-outs and pairing-round control are still
+PR/CLI-only (see `CLAUDE.md`'s admin forward-looking note) — only calendar
+events go through the admin panel today.
+
 ## Handover
 
 Everything above is reproducible from this repo plus the private data repo. To
 hand the site to next year's section: add them to both repos, rotate
-`SECTION_PASSPHRASE` and `DATA_REPO_TOKEN`, and transfer the Cloudflare project.
+`SECTION_PASSPHRASE`, `DATA_REPO_TOKEN`, `ADMIN_PASSPHRASE_HASH`, and
+`GITHUB_ADMIN_TOKEN`, and transfer the Cloudflare project.

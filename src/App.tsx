@@ -6,13 +6,10 @@ import { DirectoryPage } from './pages/DirectoryPage'
 import { CalendarPage } from './pages/CalendarPage'
 import { SocialPage } from './pages/SocialPage'
 import { KnowEveryonePage } from './pages/KnowEveryonePage'
+import { AdminPage } from './pages/AdminPage'
+import { siteConfig } from './lib/siteConfig'
 
-const TABS = [
-  { to: '/directory', label: 'Jirectory' },
-  { to: '/calendar', label: 'Jalendar' },
-  { to: '/social', label: 'Jocial' },
-  { to: '/know-everyone', label: 'Just for Fun' },
-]
+const TABS = siteConfig.tabs
 
 export function App() {
   const { status, lock, isSampleBuild } = useSectionData()
@@ -33,7 +30,7 @@ export function App() {
         <div className="h-[3px] bg-gradient-to-r from-green-600 via-green-400 to-green-600" />
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
           <NavLink to="/" className="font-serif text-xl text-green-700 dark:text-green-400">
-            Section J
+            {siteConfig.orgName}
           </NavLink>
 
           <nav className="flex flex-1 gap-1 overflow-x-auto" aria-label="Sections">
@@ -55,6 +52,13 @@ export function App() {
               ))}
           </nav>
 
+          <NavLink
+            to="/admin"
+            className="whitespace-nowrap text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
+          >
+            Admin
+          </NavLink>
+
           <button
             onClick={lock}
             className="whitespace-nowrap text-xs text-ink-400 underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
@@ -72,6 +76,7 @@ export function App() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/social" element={<SocialPage />} />
           <Route path="/know-everyone" element={<KnowEveryonePage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

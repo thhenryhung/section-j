@@ -1,9 +1,9 @@
 /**
  * Generate a meetup round from the command line.
  *
- * Same algorithm as the in-app admin panel — both import src/lib/pairing.ts — but
- * this version writes straight into the private data repo and prints a summary you
- * can sanity-check before committing.
+ * This is still the only pairing-round generator (the earlier in-app one was
+ * removed — see CLAUDE.md's Architecture section). It writes straight into the
+ * private data repo and prints a summary you can sanity-check before committing.
  *
  *   npm run pair -- --kind dinner --date 2026-09-17
  *   npm run pair -- --kind onetoone --date 2026-10-08 --absent jsmith,alee

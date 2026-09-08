@@ -12,6 +12,11 @@
  * appears as brand decoration anymore, only for genuine error states (a wrong
  * passphrase, a wrong quiz answer) where red's meaning is universal and
  * shouldn't be the same green as everything correct on the page.
+ *
+ * Tailwind v4's @theme block is CSS, not JS, so it can't import
+ * src/lib/siteConfig.ts. A section forking this repo changes the --color-
+ * green-* values below by hand — there are only 7 — to rebrand; siteConfig.ts
+ * covers everything else (name, tagline, tab labels, GitHub repo).
  */
 @theme {
   --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
