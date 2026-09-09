@@ -138,5 +138,16 @@
     "category": "section",
     "date": "2026-10-11",
     "location": "TBC"
+  },
+  {
+    "id": "2026-11-25-test-event",
+    "title": "Test event",
+    "category": "section",
+    "date": "2026-11-25",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "location": "Klarman",
+    "description": "Test description",
+    "url": "www.test.com"
   }
 ]
