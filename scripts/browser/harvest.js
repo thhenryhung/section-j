@@ -29,6 +29,28 @@
   const DELAY_MS = 250
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
+  /**
+   * Class cards declare `<meta charset="UTF-8">` but a handful of company/city
+   * names on them are not actually valid UTF-8 — they look like they were
+   * imported from an older Windows-1252 system without being transcoded. A
+   * plain `response.text()` decodes strictly as UTF-8 (per the Content-Type
+   * header, which is what the browser actually honors — the meta tag is never
+   * consulted), and silently replaces every such byte with U+FFFD, discarding
+   * it for good. Decoding as UTF-8 with `fatal: true` first and only falling
+   * back to Windows-1252 on failure keeps the common case (genuinely UTF-8
+   * pages) exact, and turns the rare broken page into a readable name instead
+   * of a permanently lost character. Found via "W�rth Group".
+   */
+  async function decodeHtml(response) {
+    const buffer = await response.arrayBuffer()
+    try {
+      return new TextDecoder('utf-8', { fatal: true }).decode(buffer)
+    } catch {
+      console.warn('  ! non-UTF-8 bytes on this card — decoded as Windows-1252, please spot-check it')
+      return new TextDecoder('windows-1252').decode(buffer)
+    }
+  }
+
   // Resume support: reuse anything already collected in this tab.
   const store = (window.__harvest = window.__harvest || { people: {}, photos: {} })
 
@@ -74,7 +96,7 @@
     try {
       const response = await fetch(person.detailUrl, { credentials: 'include' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      const html = await response.text()
+      const html = await decodeHtml(response)
 
       // A session timeout returns 200 with a login page, which would otherwise
       // be saved as if it were a class card and quietly poison the roster.

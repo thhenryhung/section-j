@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSectionData } from '../gate/SectionData'
 import { PersonPhoto } from '../components/PersonPhoto'
 import { PersonDetail } from '../components/PersonDetail'
-import { currentRoleLabel } from '../lib/people'
+import { currentRoleLabel, regionLabel } from '../lib/people'
 import { mulberry32 } from '../lib/pairing'
 import type { Person } from '../lib/types'
 
@@ -10,7 +10,24 @@ const PROGRESS_KEY = 'section-j.quiz'
 const SESSION_LENGTH = 10
 const CHOICES = 4
 
-type Mode = 'photo-to-name' | 'name-to-photo'
+type Mode = 'photo-to-name' | 'name-to-photo' | 'name-to-region' | 'name-to-org'
+
+const VALUE_MODES = ['name-to-region', 'name-to-org'] as const
+type ValueMode = (typeof VALUE_MODES)[number]
+
+function isValueMode(mode: Mode): mode is ValueMode {
+  return (VALUE_MODES as readonly Mode[]).includes(mode)
+}
+
+/** The fact a value-mode question is testing, or undefined if the person never filled it in. */
+function valueOf(mode: ValueMode, person: Person): string | undefined {
+  return mode === 'name-to-region' ? regionLabel(person.homeRegion) : person.preMBA[0]?.company
+}
+
+const VALUE_MODE_PROMPT: Record<ValueMode, string> = {
+  'name-to-region': 'Where are they from?',
+  'name-to-org': 'Which organization did they work at?',
+}
 
 /**
  * Leitner-style progress, one box per person.
@@ -40,9 +57,26 @@ function saveProgress(progress: Progress) {
   }
 }
 
+/**
+ * `key` is what gets compared against `correctKey` and what keyboard shortcuts
+ * index into — a person id for the two photo-based modes, or the value string
+ * itself (a region or company name) for the two value-based modes. `person` is
+ * only set for photo-based options, so `name-to-photo` can render a headshot.
+ */
+type Option = { key: string; label: string; person?: Person }
 type Question = {
   answer: Person
-  options: Person[]
+  correctKey: string
+  options: Option[]
+}
+
+function shuffle<T>(items: T[], random: () => number): T[] {
+  const shuffled = [...items]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
 }
 
 /**
@@ -51,12 +85,15 @@ type Question = {
  * correctly five times running.
  */
 function pickQuestionPeople(
+  mode: Mode,
   people: Person[],
   progress: Progress,
   count: number,
   random: () => number,
 ): Person[] {
-  const pool = people.filter((p) => p.photoId)
+  const pool = isValueMode(mode)
+    ? people.filter((p) => valueOf(mode, p))
+    : people.filter((p) => p.photoId)
   const chosen: Person[] = []
   const weights = new Map(pool.map((p) => [p.id, 1 / 2 ** (progress[p.id]?.box ?? 0)]))
 
@@ -78,9 +115,32 @@ function pickQuestionPeople(
 
 /**
  * Distractors are drawn at random rather than from lookalikes — the goal is to
- * learn the section, not to build a hard adversarial test.
+ * learn the section, not to build a hard adversarial test. Value-mode
+ * distractors are drawn from distinct *values*, not people, so two options
+ * never show the same city or employer twice.
  */
-function buildQuestion(answer: Person, people: Person[], random: () => number): Question {
+function buildQuestion(mode: Mode, answer: Person, people: Person[], random: () => number): Question {
+  if (isValueMode(mode)) {
+    const correctValue = valueOf(mode, answer)!
+    const otherValues: string[] = []
+    const seen = new Set([correctValue])
+    for (const p of people) {
+      const value = valueOf(mode, p)
+      if (value && !seen.has(value)) {
+        seen.add(value)
+        otherValues.push(value)
+      }
+    }
+
+    const pool = shuffle(otherValues, random)
+    const distractors = pool.slice(0, CHOICES - 1)
+    const options = shuffle(
+      [correctValue, ...distractors].map((value) => ({ key: value, label: value })),
+      random,
+    )
+    return { answer, correctKey: correctValue, options }
+  }
+
   const others = people.filter((p) => p.id !== answer.id)
   const distractors: Person[] = []
   const used = new Set<string>()
@@ -92,12 +152,11 @@ function buildQuestion(answer: Person, people: Person[], random: () => number): 
     distractors.push(candidate)
   }
 
-  const options = [answer, ...distractors]
-  for (let i = options.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1))
-    ;[options[i], options[j]] = [options[j], options[i]]
-  }
-  return { answer, options }
+  const options = shuffle(
+    [answer, ...distractors].map((p) => ({ key: p.id, label: p.displayName, person: p })),
+    random,
+  )
+  return { answer, correctKey: answer.id, options }
 }
 
 export function KnowEveryonePage() {
@@ -113,22 +172,22 @@ export function KnowEveryonePage() {
 
   const questions = useMemo(() => {
     const random = mulberry32(seed)
-    const subjects = pickQuestionPeople(people, progress, SESSION_LENGTH, random)
-    return subjects.map((subject) => buildQuestion(subject, people, random))
+    const subjects = pickQuestionPeople(mode, people, progress, SESSION_LENGTH, random)
+    return subjects.map((subject) => buildQuestion(mode, subject, people, random))
     // `progress` is intentionally omitted: re-weighting mid-session would rebuild
     // the question list under the player's feet after every answer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [people, seed])
+  }, [people, seed, mode])
 
   const question = questions[index]
   const finished = index >= questions.length
 
   const answer = useCallback(
-    (choiceId: string) => {
+    (choiceKey: string) => {
       if (picked || !question) return
-      setPicked(choiceId)
+      setPicked(choiceKey)
 
-      const correct = choiceId === question.answer.id
+      const correct = choiceKey === question.correctKey
       const id = question.answer.id
 
       setProgress((prev) => {
@@ -160,7 +219,7 @@ export function KnowEveryonePage() {
     function onKey(event: KeyboardEvent) {
       if (!question || picked) return
       const n = Number(event.key)
-      if (n >= 1 && n <= question.options.length) answer(question.options[n - 1].id)
+      if (n >= 1 && n <= question.options.length) answer(question.options[n - 1].key)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -179,24 +238,21 @@ export function KnowEveryonePage() {
     setStreak(0)
   }
 
-  const withPhotos = people.filter((p) => p.photoId).length
-
-  if (withPhotos < CHOICES) {
-    return (
-      <p className="py-16 text-center text-sm text-ink-400">
-        The quiz needs at least {CHOICES} people with photos. Run the photo pipeline first.
-      </p>
-    )
-  }
+  const eligibleCount = isValueMode(mode)
+    ? people.filter((p) => valueOf(mode, p)).length
+    : people.filter((p) => p.photoId).length
+  const shortOnData = eligibleCount < CHOICES
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex rounded-lg border border-ink-300 dark:border-ink-700">
+        <div className="flex flex-wrap rounded-lg border border-ink-300 dark:border-ink-700">
           {(
             [
               ['photo-to-name', 'Photo → name'],
               ['name-to-photo', 'Name → photo'],
+              ['name-to-region', 'Name → hometown'],
+              ['name-to-org', 'Name → employer'],
             ] as const
           ).map(([value, label]) => (
             <button
@@ -216,7 +272,13 @@ export function KnowEveryonePage() {
         </div>
       </div>
 
-      {finished ? (
+      {shortOnData ? (
+        <p className="py-16 text-center text-sm text-ink-400">
+          {isValueMode(mode)
+            ? `Not enough people have filled in ${mode === 'name-to-region' ? 'a home region' : 'a pre-MBA employer'} yet for this mode.`
+            : `The quiz needs at least ${CHOICES} people with photos. Run the photo pipeline first.`}
+        </p>
+      ) : finished ? (
         <div className="card p-8 text-center">
           <p className="font-serif text-4xl text-green-700 dark:text-green-400">
             {score}/{questions.length}
@@ -245,33 +307,7 @@ export function KnowEveryonePage() {
               </span>
             </div>
 
-            {mode === 'photo-to-name' ? (
-              <div className="flex flex-col items-center gap-4 p-6">
-                <PersonPhoto
-                  person={question.answer}
-                  className="size-56 rounded-xl text-6xl"
-                />
-                <div className="grid w-full max-w-md grid-cols-1 gap-2 sm:grid-cols-2">
-                  {question.options.map((option, i) => (
-                    <ChoiceButton
-                      key={option.id}
-                      label={option.displayName}
-                      hint={`${i + 1}`}
-                      state={
-                        !picked
-                          ? 'idle'
-                          : option.id === question.answer.id
-                            ? 'correct'
-                            : option.id === picked
-                              ? 'wrong'
-                              : 'idle'
-                      }
-                      onClick={() => answer(option.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : (
+            {mode === 'name-to-photo' ? (
               <div className="flex flex-col items-center gap-4 p-6">
                 <p className="font-serif text-3xl">{question.answer.displayName}</p>
                 {currentRoleLabel(question.answer) && (
@@ -281,15 +317,15 @@ export function KnowEveryonePage() {
                   {question.options.map((option, i) => {
                     const state = !picked
                       ? 'idle'
-                      : option.id === question.answer.id
+                      : option.key === question.correctKey
                         ? 'correct'
-                        : option.id === picked
+                        : option.key === picked
                           ? 'wrong'
                           : 'idle'
                     return (
                       <button
-                        key={option.id}
-                        onClick={() => answer(option.id)}
+                        key={option.key}
+                        onClick={() => answer(option.key)}
                         className={`relative overflow-hidden rounded-xl border-4 transition ${
                           state === 'correct'
                             ? 'border-emerald-500'
@@ -298,13 +334,50 @@ export function KnowEveryonePage() {
                               : 'border-transparent hover:border-ink-300'
                         }`}
                       >
-                        <PersonPhoto person={option} className="size-32 text-3xl" />
+                        <PersonPhoto person={option.person!} className="size-32 text-3xl" />
                         <span className="absolute left-1 top-1 rounded bg-black/50 px-1.5 text-xs text-white">
                           {i + 1}
                         </span>
                       </button>
                     )
                   })}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-4 p-6">
+                {mode === 'photo-to-name' ? (
+                  <PersonPhoto
+                    person={question.answer}
+                    className="size-56 rounded-xl text-6xl"
+                  />
+                ) : (
+                  <>
+                    <PersonPhoto
+                      person={question.answer}
+                      className="size-32 rounded-xl text-4xl"
+                    />
+                    <p className="font-serif text-3xl">{question.answer.displayName}</p>
+                    <p className="-mt-2 text-sm text-ink-500">{VALUE_MODE_PROMPT[mode]}</p>
+                  </>
+                )}
+                <div className="grid w-full max-w-md grid-cols-1 gap-2 sm:grid-cols-2">
+                  {question.options.map((option, i) => (
+                    <ChoiceButton
+                      key={option.key}
+                      label={option.label}
+                      hint={`${i + 1}`}
+                      state={
+                        !picked
+                          ? 'idle'
+                          : option.key === question.correctKey
+                            ? 'correct'
+                            : option.key === picked
+                              ? 'wrong'
+                              : 'idle'
+                      }
+                      onClick={() => answer(option.key)}
+                    />
+                  ))}
                 </div>
               </div>
             )}
