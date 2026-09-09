@@ -86,6 +86,11 @@ const ALLOWLIST = [
   // CLAUDE.local.md is gitignored, so it is normally never scanned — this only
   // matters on the fallback path used when the working tree is not a git repo.
   'CLAUDE.local.md',
+  // Event titles/descriptions are expected to name section members — a talk,
+  // a birthday shoutout, a recurring segment like "Nate Meade's My Take" — and
+  // this file is deliberately public (the admin panel commits straight to it).
+  // A real name here is normal content, not a leak.
+  'data/events.json',
 ]
 
 /** Checked by the exact-match layer but exempt from the loose pattern rules. */
@@ -135,6 +140,21 @@ function loadSecrets(): { strings: string[]; source: string } | null {
     // (too many collide with ordinary words like "Grace" or "Will").
     if (p.lastName && p.lastName.length >= 4) strings.add(p.lastName.toLowerCase())
   }
+
+  // A name that already appears in data/events.json is sanctioned public
+  // content (see ALLOWLIST's note there), not a leak — including everywhere
+  // Vite bundles that same JSON into dist/ at build time under a hashed
+  // filename we cannot add to ALLOWLIST by name. Emails/phones stay checked
+  // everywhere: this only relaxes the name rule, the thing event titles
+  // actually need to say.
+  const eventsPath = path.join(repoRoot, 'data', 'events.json')
+  if (existsSync(eventsPath)) {
+    const eventsText = readFileSync(eventsPath, 'utf8').toLowerCase()
+    for (const value of [...strings]) {
+      if (!/^\d+$/.test(value) && isWholeWordMatch(eventsText, value)) strings.delete(value)
+    }
+  }
+
   return { strings: [...strings].filter(Boolean), source: privateRoster }
 }
 
