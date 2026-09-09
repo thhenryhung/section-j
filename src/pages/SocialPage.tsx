@@ -189,8 +189,8 @@ function RoundView({
 
 /**
  * Type-to-filter name picker, so finding yourself doesn't mean scrolling
- * ninety names in a native `<select>` — especially painful if your name is
- * near the end of the alphabet.
+ * the whole section in a native `<select>` — especially painful if your name
+ * is near the end of the alphabet.
  */
 function NamePicker({
   id,

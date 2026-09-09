@@ -390,8 +390,14 @@ function EntryTitle({
   }
   if (entry.url) {
     return (
-      <a href={entry.url} target="_blank" rel="noreferrer" className="text-sm hover:text-green-700 dark:hover:text-green-400">
+      <a
+        href={entry.url}
+        target="_blank"
+        rel="noreferrer"
+        className="text-sm underline underline-offset-2 hover:text-green-700 dark:hover:text-green-400"
+      >
         {content}
+        <span aria-hidden="true"> ↗</span>
       </a>
     )
   }

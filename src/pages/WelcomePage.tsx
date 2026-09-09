@@ -64,7 +64,7 @@ const FEATURES: Feature[] = [
   {
     to: '/know-everyone',
     name: 'Just for Fun',
-    description: 'A quick photo quiz to learn all ninety names and faces',
+    description: 'A quick photo quiz to learn everyone\'s names and faces',
     icon: (
       <svg {...ICON_PROPS}>
         <path d="M9 4h4v2a1.5 1.5 0 0 0 3 0V4h1a2 2 0 0 1 2 2v1h-2a1.5 1.5 0 0 0 0 3h2v1a2 2 0 0 1-2 2h-1v2a1.5 1.5 0 0 1-3 0v-2H9v2a1.5 1.5 0 0 1-3 0v-2H5a2 2 0 0 1-2-2v-1h2a1.5 1.5 0 0 0 0-3H3V6a2 2 0 0 1 2-2h1v2a1.5 1.5 0 0 0 3 0z" />
@@ -85,7 +85,7 @@ export function WelcomePage() {
       <div className="relative px-5 py-10 sm:px-8 sm:py-12">
         <div className="mb-8 text-center">
           <h1 className="font-serif text-3xl text-white">Welcome to {siteConfig.orgName}</h1>
-          <p className="mt-1 text-sm text-ink-200">Ninety classmates, one place to find them</p>
+          <p className="mt-1 text-sm text-ink-200">Your one-stop portal to the section</p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -32,7 +32,11 @@ export async function getJSONFile<T>(
   })
   if (!res.ok) throw new Error(`GitHub read failed: ${res.status}`)
   const body = (await res.json()) as ContentsResponse
-  const data = JSON.parse(atob(body.content.replace(/\n/g, ''))) as T
+  // atob alone decodes to Latin1, not UTF-8 — a plain atob here corrupts any
+  // non-ASCII character (em dashes, curly quotes) on every read-modify-write
+  // round trip. escape/decodeURIComponent mirrors the encodeURIComponent/unescape
+  // used to encode in putJSONFile below, so the two stay symmetric.
+  const data = JSON.parse(decodeURIComponent(escape(atob(body.content.replace(/\n/g, ''))))) as T
   return { data, sha: body.sha }
 }
 
