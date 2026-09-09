@@ -1,7 +1,7 @@
 [
   {
     "id": "onetoone-round-1",
-    "title": "Coffee chats \u2014 Round 1",
+    "title": "Coffee chats — Round 1",
     "category": "social",
     "date": "2026-09-24",
     "description": "Groups to determine when to meet during the week",
@@ -9,7 +9,7 @@
   },
   {
     "id": "dinner-round-1",
-    "title": "Small-group dinners \u2014 Round 1",
+    "title": "Small-group dinners — Round 1",
     "category": "social",
     "date": "2026-10-08",
     "startTime": "19:00",
@@ -18,7 +18,7 @@
   },
   {
     "id": "onetoone-round-2",
-    "title": "Coffee chats \u2014 Round 2",
+    "title": "Coffee chats — Round 2",
     "category": "social",
     "date": "2026-10-22",
     "location": "Groups assigned on the Social tab",
@@ -26,7 +26,7 @@
   },
   {
     "id": "dinner-round-2",
-    "title": "Small-group dinners \u2014 Round 2",
+    "title": "Small-group dinners — Round 2",
     "category": "social",
     "date": "2026-11-05",
     "startTime": "19:00",
@@ -35,7 +35,7 @@
   },
   {
     "id": "onetoone-round-3",
-    "title": "Coffee chats \u2014 Round 3",
+    "title": "Coffee chats — Round 3",
     "category": "social",
     "date": "2026-11-19",
     "location": "Groups assigned on the Social tab",
@@ -43,7 +43,7 @@
   },
   {
     "id": "onetoone-round-4",
-    "title": "Coffee chats \u2014 Round 4",
+    "title": "Coffee chats — Round 4",
     "category": "social",
     "date": "2027-02-11",
     "location": "Groups assigned on the Social tab",
@@ -51,7 +51,7 @@
   },
   {
     "id": "dinner-round-3",
-    "title": "Small-group dinners \u2014 Round 3",
+    "title": "Small-group dinners — Round 3",
     "category": "social",
     "date": "2027-01-28",
     "startTime": "19:00",
@@ -60,7 +60,7 @@
   },
   {
     "id": "dinner-round-4",
-    "title": "Small-group dinners \u2014 Round 4",
+    "title": "Small-group dinners — Round 4",
     "category": "social",
     "date": "2027-02-25",
     "startTime": "19:00",
@@ -69,7 +69,7 @@
   },
   {
     "id": "onetoone-round-5",
-    "title": "Coffee chats \u2014 Round 5",
+    "title": "Coffee chats — Round 5",
     "category": "social",
     "date": "2027-03-11",
     "location": "Groups assigned on the Social tab",
@@ -77,7 +77,7 @@
   },
   {
     "id": "dinner-round-5",
-    "title": "Small-group dinners \u2014 Round 5",
+    "title": "Small-group dinners — Round 5",
     "category": "social",
     "date": "2027-03-25",
     "startTime": "19:00",
@@ -86,7 +86,7 @@
   },
   {
     "id": "onetoone-round-6",
-    "title": "Coffee chats \u2014 Round 6",
+    "title": "Coffee chats — Round 6",
     "category": "social",
     "date": "2027-04-08",
     "location": "Groups assigned on the Social tab",
@@ -94,7 +94,7 @@
   },
   {
     "id": "dinner-round-6",
-    "title": "Small-group dinners \u2014 Round 6",
+    "title": "Small-group dinners — Round 6",
     "category": "social",
     "date": "2027-04-22",
     "startTime": "19:00",
@@ -103,7 +103,7 @@
   },
   {
     "id": "onetoone-round-7",
-    "title": "Coffee chats \u2014 Round 7",
+    "title": "Coffee chats — Round 7",
     "category": "social",
     "date": "2027-05-06",
     "location": "Groups assigned on the Social tab",
@@ -111,7 +111,7 @@
   },
   {
     "id": "dinner-round-7",
-    "title": "Small-group dinners \u2014 Round 7",
+    "title": "Small-group dinners — Round 7",
     "category": "social",
     "date": "2027-05-20",
     "startTime": "19:00",
@@ -149,5 +149,13 @@
     "location": "Klarman",
     "description": "Test description",
     "url": "www.test.com"
+  },
+  {
+    "id": "2026-09-15-nate-meade-s-my-take",
+    "title": "Nate Meade's My Take",
+    "category": "section",
+    "date": "2026-09-15",
+    "startTime": "12:10",
+    "endTime": "12:30"
   }
 ]
